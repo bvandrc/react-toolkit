@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import { objectEntries } from 'ts-extras'
 
-import { typedEntries } from '@/utils'
 import { usePressHold } from '../usePressHold'
 
 /** Long enough that any press still down has become a hold. */
@@ -120,7 +120,7 @@ describe('usePressHold', () => {
   })
 
   it('cancels a press that moves in any direction past the threshold', () => {
-    for (const [direction, pointPastThreshold] of typedEntries({
+    for (const [direction, pointPastThreshold] of objectEntries({
       scroll: SCROLLED,
       swipe: SWIPED,
     })) {
@@ -139,13 +139,13 @@ describe('usePressHold', () => {
   })
 
   it('holds through movement along an axis it was given no threshold for', () => {
-    for (const [bounded, { moveThreshold, ...moves }] of typedEntries({
+    for (const [bounded, { moveThreshold, ...moves }] of objectEntries({
       // A vertically scrolling list, which is what `TaskCard` sits in: a swipe
       // across a card is still a press on that card.
       y: { moveThreshold: { y: 10 }, holds: SWIPED, cancels: SCROLLED },
       x: { moveThreshold: { x: 10 }, holds: SCROLLED, cancels: SWIPED },
     } as const)) {
-      for (const [outcome, point] of typedEntries(moves)) {
+      for (const [outcome, point] of objectEntries(moves)) {
         // A spy per press, since `clearMocks` only reaches between cases.
         const pressOnHold = vi.fn()
         const { target, isHolding } = renderPressHold({
@@ -177,7 +177,7 @@ describe('usePressHold', () => {
   })
 
   it('reads one threshold as a distance, and a pair as a box', () => {
-    for (const [form, moveThreshold] of typedEntries({
+    for (const [form, moveThreshold] of objectEntries({
       // 9 on each axis is 12.7 from the origin, so the distance is spent while
       // neither axis is.
       distance: 10,
@@ -202,7 +202,7 @@ describe('usePressHold', () => {
   })
 
   it('cancels a press the pointer ends before the duration is up', () => {
-    for (const [ending, endPress] of typedEntries({
+    for (const [ending, endPress] of objectEntries({
       mouseUp: (target: HTMLElement) => fireEvent.mouseUp(target, ORIGIN),
       // The pointer dragged off the element mid-press.
       mouseLeave: (target: HTMLElement) => fireEvent.mouseLeave(target, ORIGIN),

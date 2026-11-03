@@ -3,6 +3,5 @@
 
 export * from './device'
 export * from './input'
-export * from './lang'
 export * from './layout'
 export * from './share'

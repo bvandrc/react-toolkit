@@ -27,5 +27,3 @@ export * from './utils/input'
 export * from './utils/layout'
 export * from './utils/page'
 export * from './utils/share'
-// Not './utils/lang': its helpers are copies kept local so the package reaches
-// nothing outside itself, not part of its API.
