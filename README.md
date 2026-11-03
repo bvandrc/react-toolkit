@@ -1,9 +1,9 @@
-# @bvandrc/react-ui-hooks
+# @bvandrc/react-toolkit
 
 Generic React hooks and helpers for UI behavior, such as press-and-hold, scrolling into view, the visual viewport and on-screen keyboard, focus handoff and return, and more.
 
 ```bash
-npm install @bvandrc/react-ui-hooks
+npm install @bvandrc/react-toolkit
 ```
 
 Requires React 18 or 19. ESM only, with types included.
@@ -83,7 +83,7 @@ Requires React 18 or 19. ESM only, with types included.
 
 ### Tabs
 
-From `@bvandrc/react-ui-hooks/active-tab`, with [`tab-election`](https://www.npmjs.com/package/tab-election) installed alongside (an optional peer dependency).
+From `@bvandrc/react-toolkit/active-tab`, with [`tab-election`](https://www.npmjs.com/package/tab-election) installed alongside (an optional peer dependency).
 
 | Export | What it does |
 | --- | --- |
@@ -112,7 +112,7 @@ Plain functions, usable outside React:
 
 ## Test Support
 
-`@bvandrc/react-ui-hooks/test-support` fills in the browser APIs these hooks read and test DOMs like happy-dom and jsdom don't fully provide:
+`@bvandrc/react-toolkit/test-support` fills in the browser APIs these hooks read and test DOMs like happy-dom and jsdom don't fully provide:
 
 - `mockVisualViewport`, `mockResizeObserver`, `mockMatchMedia`, `mockMobile`, and `mockTouchDevice`: Vitest mocks, which need `vitest` and `@testing-library/react` (optional peer dependencies).
 - `installTabApis`: Node's own Web Locks and `BroadcastChannel`, for testing code that coordinates tabs, like `useActiveTab`. Needs Node 24 or later.

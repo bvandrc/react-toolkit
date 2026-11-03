@@ -1,6 +1,6 @@
-# @bvandrc/react-ui-hooks — Claude Code Reference
+# @bvandrc/react-toolkit — Claude Code Reference
 
-Generic React hooks and helpers for browser UI behavior, published to npm as `@bvandrc/react-ui-hooks`.
+Generic React hooks and helpers for browser UI behavior, published to npm as `@bvandrc/react-toolkit`.
 
 ## Code conventions
 
