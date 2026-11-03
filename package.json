@@ -1,6 +1,6 @@
 {
   "name": "@bvandrc/react-ui-hooks",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Generic React hooks and helpers for UI behavior, such as press-and-hold, scrolling into view, the visual viewport and on-screen keyboard, focus handoff and return, and more.",
   "keywords": [
     "react",
@@ -26,6 +26,10 @@
     ".": {
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
+    },
+    "./active-tab": {
+      "types": "./dist/active-tab.d.mts",
+      "default": "./dist/active-tab.mjs"
     },
     "./test-support": {
       "types": "./dist/test-support/index.d.mts",
@@ -59,10 +63,14 @@
   "peerDependencies": {
     "@testing-library/react": "^16",
     "react": "^18 || ^19",
+    "tab-election": "^4",
     "vitest": ">=3"
   },
   "peerDependenciesMeta": {
     "@testing-library/react": {
+      "optional": true
+    },
+    "tab-election": {
       "optional": true
     },
     "vitest": {
@@ -74,11 +82,13 @@
     "@testing-library/jest-dom": "^7",
     "@testing-library/react": "^16",
     "@testing-library/user-event": "^14",
+    "@types/node": "^24",
     "@types/react": "^18",
     "@vitejs/plugin-react": "^6",
     "happy-dom": "^21",
     "react": "^18",
     "react-dom": "^18",
+    "tab-election": "^4",
     "tailwindcss": "^4",
     "ts-extras": "^1",
     "tsdown": "^0.23",

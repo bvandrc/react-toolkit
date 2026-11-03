@@ -81,6 +81,14 @@ Requires React 18 or 19. ESM only, with types included.
 | `useHasPassed` | Whether a date has passed, re-rendering at the moment it does with one timer rather than polling. |
 | `useDebouncedPersist` | Persists a value to `localStorage`, debounced, and flushed when the app is hidden or closed so nothing is lost to the debounce window. |
 
+### Tabs
+
+From `@bvandrc/react-ui-hooks/active-tab`, with [`tab-election`](https://www.npmjs.com/package/tab-election) installed alongside (an optional peer dependency).
+
+| Export | What it does |
+| --- | --- |
+| `useActiveTab` | Runs an app in one tab at a time, with a `takeOver` to move it to this tab. |
+
 ## Other Helpers
 
 Plain functions, usable outside React:
@@ -104,7 +112,10 @@ Plain functions, usable outside React:
 
 ## Test Support
 
-`@bvandrc/react-ui-hooks/test-support` has Vitest mocks for the browser APIs these hooks read and test DOMs like happy-dom and jsdom don't fully provide: `mockVisualViewport`, `mockResizeObserver`, `mockMatchMedia`, `mockMobile`, and `mockTouchDevice`. It needs `vitest` and `@testing-library/react`, which are optional peer dependencies.
+`@bvandrc/react-ui-hooks/test-support` fills in the browser APIs these hooks read and test DOMs like happy-dom and jsdom don't fully provide:
+
+- `mockVisualViewport`, `mockResizeObserver`, `mockMatchMedia`, `mockMobile`, and `mockTouchDevice`: Vitest mocks, which need `vitest` and `@testing-library/react` (optional peer dependencies).
+- `installTabApis`: Node's own Web Locks and `BroadcastChannel`, for testing code that coordinates tabs, like `useActiveTab`. Needs Node 24 or later.
 
 ## License
 
