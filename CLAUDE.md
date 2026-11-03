@@ -27,7 +27,7 @@ Conventions live outside this file, synced from https://github.com/bvandrc/bvand
 
 ## Gotchas
 
-- **Generic by intent**: Nothing here may know about an app that uses it. A dependency added here ships to every consumer, so prefer a local copy of a small helper (as `src/utils/lang.ts` does) over a new package.
+- **Generic by intent**: Nothing here may know about an app that uses it. A dependency added here ships to every consumer, so prefer a local copy of a small helper over a new package. A package only tests use, like `ts-extras`, is a devDependency and ships nothing.
 - **The public API is `src/index.ts` and `src/test-support/index.ts`**: Removing or renaming an export from either is a breaking change, so it needs a major bump.
 - **Test support ships**: `src/test-support/` is published for consumers' own tests, so it imports `vi` from `vitest` explicitly rather than relying on Vitest's globals, which a consumer may not turn on.
 - **`@/*` is `src/*`**: Declared once in `tsconfig.json`; Vitest reads it through `resolve.tsconfigPaths`, and tsdown rewrites it to relative paths in `dist/`, so consumers never see it. Use it for any import that would climb out of a folder (`../`), and keep same-folder siblings relative.
