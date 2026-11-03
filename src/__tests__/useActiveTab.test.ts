@@ -149,6 +149,67 @@ describe('useActiveTab', () => {
       expect(getStatus(tab)).toBe('elsewhere')
     })
 
+    describe('with `enabled` false', () => {
+      /** Every status a toggleable tab has rendered, in order. */
+      const renderedStatuses: string[] = []
+
+      /** A tab whose `enabled` the case can change, logging each status it renders. */
+      const renderToggleableTab = (enabled: boolean) => {
+        const name = lockName
+        return renderHook(
+          ({ isEnabled }) => {
+            const activeTab = useActiveTab(name, { enabled: isEnabled })
+            renderedStatuses.push(activeTab.status)
+            return activeTab
+          },
+          { initialProps: { isEnabled: enabled } }
+        )
+      }
+
+      beforeEach(() => {
+        renderedStatuses.length = 0
+      })
+
+      it('gives up the lead to the next tab in line', async () => {
+        const first = renderToggleableTab(true)
+        await settle()
+        const [second] = await openTabs(1)
+
+        first.rerender({ isEnabled: false })
+        expect(getStatus(first), 'in the same render').toBe('elsewhere')
+        await settle()
+
+        expect(getStatus(second)).toBe('active')
+      })
+
+      it('never takes the lead, even with no other tab', async () => {
+        const tab = renderToggleableTab(false)
+        await settle()
+
+        expect(getStatus(tab)).toBe('elsewhere')
+        const [other] = await openTabs(1)
+        expect(getStatus(other), 'free for the next tab').toBe('active')
+      })
+
+      it('joins the line again when re-enabled, behind the tab that took over', async () => {
+        const first = renderToggleableTab(true)
+        await settle()
+        const [second] = await openTabs(1)
+        first.rerender({ isEnabled: false })
+        await settle()
+
+        renderedStatuses.length = 0
+        first.rerender({ isEnabled: true })
+        await settle()
+
+        // Not for a single render: one would mount the app on a lead it gave up.
+        expect(renderedStatuses).not.toContain('active')
+
+        expect(getStatus(first)).toBe('elsewhere')
+        expect(getStatus(second)).toBe('active')
+      })
+    })
+
     it("holds the app back from the new tab until the old one's `beforeHandOver` resolves", async () => {
       const { promise, resolve } = Promise.withResolvers<void>()
       const first = renderTab({ beforeHandOver: () => promise })
@@ -164,6 +225,12 @@ describe('useActiveTab', () => {
       await settle()
       expect(getStatus(second)).toBe('active')
     })
+  })
+
+  it('reports a disabled tab elsewhere where the browser cannot coordinate tabs', () => {
+    const tab = renderTab({ enabled: false })
+
+    expect(getStatus(tab)).toBe('elsewhere')
   })
 
   it('makes every tab active where the browser cannot coordinate them', () => {

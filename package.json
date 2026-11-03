@@ -1,6 +1,6 @@
 {
   "name": "@bvandrc/react-toolkit",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Generic React hooks and helpers for UI behavior, such as press-and-hold, scrolling into view, the visual viewport and on-screen keyboard, focus handoff and return, and more.",
   "keywords": [
     "react",
