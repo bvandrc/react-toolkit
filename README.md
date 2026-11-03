@@ -112,9 +112,10 @@ Plain functions, usable outside React:
 
 ## Test Support
 
-`@bvandrc/react-ui-hooks/test-support` has Vitest mocks for the browser APIs these hooks read and test DOMs like happy-dom and jsdom don't fully provide: `mockVisualViewport`, `mockResizeObserver`, `mockMatchMedia`, `mockMobile`, and `mockTouchDevice`. It needs `vitest` and `@testing-library/react`, which are optional peer dependencies.
+`@bvandrc/react-ui-hooks/test-support` fills in the browser APIs these hooks read and test DOMs like happy-dom and jsdom don't fully provide:
 
-`installTabApis` installs Node's own Web Locks and `BroadcastChannel`, for testing code that coordinates tabs, like `useActiveTab`. It needs Node 24 or later.
+- `mockVisualViewport`, `mockResizeObserver`, `mockMatchMedia`, `mockMobile`, and `mockTouchDevice`: Vitest mocks, which need `vitest` and `@testing-library/react` (optional peer dependencies).
+- `installTabApis`: Node's own Web Locks and `BroadcastChannel`, for testing code that coordinates tabs, like `useActiveTab`. Needs Node 24 or later.
 
 ## License
 
