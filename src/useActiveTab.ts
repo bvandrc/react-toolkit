@@ -35,7 +35,17 @@ const canCoordinate = () =>
  */
 export const useActiveTab = (
   name: string,
-  { beforeHandOver }: { beforeHandOver?: () => Promise<void> } = {}
+  {
+    beforeHandOver,
+    enabled = true,
+  }: {
+    beforeHandOver?: () => Promise<void>
+    /**
+     * When false, this tab takes no part: it gives up the lead and its place
+     * in line at once, without `beforeHandOver`, and reports `elsewhere`.
+     */
+    enabled?: boolean
+  } = {}
 ) => {
   const [status, setStatus] = useState<ActiveTabStatus>(() =>
     canCoordinate() ? 'pending' : 'active'
@@ -47,8 +57,10 @@ export const useActiveTab = (
 
   useEffect(() => {
     if (!canCoordinate()) return
-    // A new name is a new election: nothing held under the last one counts.
+    // A new name is a new election, as is joining again: nothing held before
+    // counts -- so re-enabling can't report a lead this tab has since let go.
     setStatus('pending')
+    if (!enabled) return
     const tab = new Tab(name)
     tabRef.current = tab
 
@@ -76,7 +88,7 @@ export const useActiveTab = (
       tab.close()
       tabRef.current = null
     }
-  }, [name])
+  }, [name, enabled])
 
   useEffect(() => {
     const tab = tabRef.current
@@ -100,5 +112,7 @@ export const useActiveTab = (
     tab.send(MAKE_WAY)
   }, [])
 
-  return { status, takeOver }
+  // Derived rather than set, so a tab is `elsewhere` in the very render that
+  // disables it -- not one commit later, with the app already rendered.
+  return { status: enabled ? status : 'elsewhere', takeOver }
 }
