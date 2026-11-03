@@ -83,11 +83,11 @@ Requires React 18 or 19. ESM only, with types included.
 
 ### Tabs
 
-From its own entry point, `@bvandrc/react-ui-hooks/active-tab`, since it needs [`tab-election`](https://www.npmjs.com/package/tab-election), an optional peer dependency: install it alongside to use the hook. The main entry never imports it.
+From `@bvandrc/react-ui-hooks/active-tab`, with [`tab-election`](https://www.npmjs.com/package/tab-election) installed alongside (an optional peer dependency).
 
 | Export | What it does |
 | --- | --- |
-| `useActiveTab` | Runs an app in one tab at a time, by electing a leader among its tabs. The others report `elsewhere`; `takeOver` moves the app to this tab, and the tab giving it up lets go only once its app has unmounted and an optional `beforeHandOver` has resolved. Browsers without Web Locks or `BroadcastChannel` report every tab `active`. |
+| `useActiveTab` | Runs an app in one tab at a time, with a `takeOver` to move it to this tab. |
 
 ## Other Helpers
 
@@ -114,7 +114,7 @@ Plain functions, usable outside React:
 
 `@bvandrc/react-ui-hooks/test-support` has Vitest mocks for the browser APIs these hooks read and test DOMs like happy-dom and jsdom don't fully provide: `mockVisualViewport`, `mockResizeObserver`, `mockMatchMedia`, `mockMobile`, and `mockTouchDevice`. It needs `vitest` and `@testing-library/react`, which are optional peer dependencies.
 
-For code that coordinates tabs, like `useActiveTab`, `installTabApis` installs Node's own Web Locks and `BroadcastChannel` rather than mocks, so several "tabs" rendered in one test coordinate as they would in a browser. It needs Node 24 or later. Node's locks are shared by the whole test process, so give each case's locks a name of its own.
+`installTabApis` installs Node's own Web Locks and `BroadcastChannel`, for testing code that coordinates tabs, like `useActiveTab`. It needs Node 24 or later.
 
 ## License
 
