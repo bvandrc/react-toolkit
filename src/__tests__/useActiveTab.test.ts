@@ -15,7 +15,7 @@ const renderTab = (options?: Parameters<typeof useActiveTab>[1]) => {
 
 type Tab = ReturnType<typeof renderTab>
 
-const getStatus = (tab: Tab) => tab.result.current.status
+const getStatus = (tab: Pick<Tab, 'result'>) => tab.result.current.status
 
 /** Lets every queued grant, release, and message land. */
 const settle = () => act(() => new Promise((resolve) => setTimeout(resolve)))
@@ -96,6 +96,57 @@ describe('useActiveTab', () => {
       await settle()
 
       expect(getStatus(second)).toBe('active')
+    })
+
+    it('leaves the active tab active when it asks to take over', async () => {
+      const [first, second] = await openTabs(2)
+
+      act(() => first.result.current.takeOver())
+      await settle()
+
+      expect(getStatus(first)).toBe('active')
+      expect(getStatus(second)).toBe('elsewhere')
+    })
+
+    it('lets go for good when a tab unmounts while handing over', async () => {
+      const { promise, resolve } = Promise.withResolvers<void>()
+      const first = renderTab({ beforeHandOver: () => promise })
+      await settle()
+      const [second] = await openTabs(1)
+      act(() => second.result.current.takeOver())
+      await settle()
+
+      // Gone mid hand-over: its `beforeHandOver` resolves after it has closed.
+      first.unmount()
+      resolve()
+      await settle()
+      // Once the new active tab closes too, the lead must reach a live tab.
+      second.unmount()
+      const [third] = await openTabs(1)
+
+      expect(getStatus(third)).toBe('active')
+    })
+
+    it('starts over when the name changes, rather than keeping the old status', async () => {
+      const [elsewhereTab] = await openTabs(1)
+      const otherName = `${lockName}-other`
+      const holder = renderHook(() => useActiveTab(otherName))
+      await settle()
+      expect(getStatus(holder), 'holds the other name').toBe('active')
+
+      elsewhereTab.unmount()
+      const tab = renderHook(({ name }) => useActiveTab(name), {
+        initialProps: { name: lockName },
+      })
+      await settle()
+      expect(getStatus(tab)).toBe('active')
+
+      tab.rerender({ name: otherName })
+      expect(getStatus(tab), 'before the new election answers').not.toBe(
+        'active'
+      )
+      await settle()
+      expect(getStatus(tab)).toBe('elsewhere')
     })
 
     it("holds the app back from the new tab until the old one's `beforeHandOver` resolves", async () => {

@@ -4,7 +4,7 @@
  * in memory would otherwise overwrite the others'.
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Tab } from 'tab-election'
 
 /**
@@ -27,16 +27,11 @@ const canCoordinate = () =>
   Boolean(navigator.locks) && typeof BroadcastChannel !== 'undefined'
 
 /**
- * Runs an app in one tab at a time, by electing a leader among the tabs open
- * under `name` with `tab-election`, an optional peer dependency.
+ * Runs an app in one tab at a time; `takeOver` moves it to this tab.
  *
- * Render the app only while `status` is `active`, from the component that
- * calls this or one below it: a tab stepping down then lets go once the app
- * has unmounted, flushing what it held, and after `beforeHandOver` resolves.
- * Every tab queues for the lead as it opens, so closing the active tab hands
- * the app to the next. `takeOver` moves it here at once, stepping the active
- * tab down and the other waiting tabs back behind this one. A browser without
- * Web Locks or `BroadcastChannel` reports every tab `active`.
+ * Render the app only while `status` is `active`, from this component or one
+ * below it, so a tab stepping down lets go only once the app has unmounted
+ * and `beforeHandOver` has resolved.
  */
 export const useActiveTab = (
   name: string,
@@ -52,6 +47,8 @@ export const useActiveTab = (
 
   useEffect(() => {
     if (!canCoordinate()) return
+    // A new name is a new election: nothing held under the last one counts.
+    setStatus('pending')
     const tab = new Tab(name)
     tabRef.current = tab
 
@@ -87,17 +84,21 @@ export const useActiveTab = (
     isHandingOverRef.current = false
     // This runs after the app's own cleanups, which flushed what it held; the
     // caller's hook covers whatever it still has on the way.
-    void (beforeHandOverRef.current?.() ?? Promise.resolve()).finally(() =>
+    void (beforeHandOverRef.current?.() ?? Promise.resolve()).finally(() => {
+      // Closed meanwhile, by an unmount or a new name: queuing a closed tab
+      // would take the lock with nothing left to let it go.
+      if (tabRef.current !== tab) return
       requeue(tab, () => setStatus('active'))
-    )
+    })
   }, [status])
 
-  const takeOver = () => {
+  const takeOver = useCallback(() => {
     const tab = tabRef.current
-    if (!tab) return
+    // Already the one running it: there is nothing to move.
+    if (!tab || tab.isLeader) return
     setStatus('pending')
     tab.send(MAKE_WAY)
-  }
+  }, [])
 
   return { status, takeOver }
 }

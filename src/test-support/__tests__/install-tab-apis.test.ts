@@ -45,4 +45,19 @@ describe('installTabApis', () => {
     sender.close()
     receiver.close()
   })
+
+  it('puts back the DOM it found on teardown', () => {
+    const ownLocks = { request: noop }
+    Object.defineProperty(navigator, 'locks', {
+      configurable: true,
+      value: ownLocks,
+    })
+    const channelBefore = globalThis.BroadcastChannel
+
+    installTabApis()()
+
+    expect(navigator.locks, 'an own `locks` comes back').toBe(ownLocks)
+    expect(globalThis.BroadcastChannel).toBe(channelBefore)
+    Reflect.deleteProperty(navigator, 'locks')
+  })
 })

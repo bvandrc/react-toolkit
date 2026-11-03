@@ -5,29 +5,50 @@
  * that coordinates tabs -- like `useActiveTab` -- in DOMs that lack them.
  */
 
-import { BroadcastChannel, locks } from 'node:worker_threads'
-import { vi } from 'vitest'
+// The default export rather than a named `locks`, which fails to link before
+// Node 24 and would take every other helper in this entry point down with it.
+import workerThreads from 'node:worker_threads'
+
+/** Puts `key` back on `target` as it was described, or removes it if it wasn't there. */
+const restoreProperty = (
+  target: object,
+  key: string,
+  descriptor: PropertyDescriptor | undefined
+) => {
+  if (descriptor) Object.defineProperty(target, key, descriptor)
+  else Reflect.deleteProperty(target, key)
+}
 
 /**
- * Installs Node's Web Locks and `BroadcastChannel` into the test DOM, so
- * several "tabs" rendered in one test coordinate as tabs in one browser would.
- * Returns the teardown for the locks; `vi.unstubAllGlobals` undoes the channel.
+ * Installs Node's Web Locks and `BroadcastChannel` into the test DOM, returning
+ * a teardown that puts back what was there.
  *
- * Needs Node 24 or later, which ships Web Locks. Node's locks are shared by the
- * whole test process rather than reset per case, so give each case's locks a
- * name of its own.
+ * Needs Node 24. Its locks are shared by the whole test process, so give each
+ * case's locks a name of its own.
  */
 export const installTabApis = () => {
   // Typed as always there, but absent before Node 24.
-  if (!(locks as LockManager | undefined)) {
+  const locks = workerThreads.locks as LockManager | undefined
+  if (!locks) {
     throw new Error('installTabApis needs Node 24 or later, for Web Locks')
   }
-  Object.defineProperty(navigator, 'locks', {
-    configurable: true,
-    value: locks,
-  })
-  vi.stubGlobal('BroadcastChannel', BroadcastChannel)
+  const ownLocks = Object.getOwnPropertyDescriptor(navigator, 'locks')
+  const ownChannel = Object.getOwnPropertyDescriptor(
+    globalThis,
+    'BroadcastChannel'
+  )
+  for (const [target, key, value] of [
+    [navigator, 'locks', locks],
+    [globalThis, 'BroadcastChannel', workerThreads.BroadcastChannel],
+  ] as const) {
+    Object.defineProperty(target, key, {
+      configurable: true,
+      writable: true,
+      value,
+    })
+  }
   return () => {
-    Reflect.deleteProperty(navigator, 'locks')
+    restoreProperty(navigator, 'locks', ownLocks)
+    restoreProperty(globalThis, 'BroadcastChannel', ownChannel)
   }
 }
