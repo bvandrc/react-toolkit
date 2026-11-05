@@ -38,12 +38,27 @@ const SMOOTH_SCROLL_MAX_MS = 1000
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
+/**
+ * How a scroll gets there.
+ *
+ * `'instant'` jumps. `'smooth'` animates it, or jumps anyway when the user
+ * prefers reduced motion.
+ */
+export type ScrollIntoViewBehavior = Extract<
+  ScrollBehavior,
+  'instant' | 'smooth'
+>
+
 export interface ScrollIntoViewCallOptions {
+  /** `'instant'` by default. */
+  behavior?: ScrollIntoViewBehavior
   /**
-   * `'smooth'` animates the scroll, or jumps anyway when the user prefers
-   * reduced motion. `'instant'` by default.
+   * Called once the element is where `block` asks.
+   *
+   * Straight away for an instant scroll, or when a smooth one ends; never
+   * for one cancelled first.
    */
-  behavior?: Extract<ScrollBehavior, 'instant' | 'smooth'>
+  onScrollEnd?: () => void
 }
 
 /**
@@ -71,7 +86,7 @@ export const useScrollIntoView = () => {
     (
       el: HTMLElement,
       block: ScrollBlock,
-      { behavior = 'instant' }: ScrollIntoViewCallOptions = {}
+      { behavior = 'instant', onScrollEnd }: ScrollIntoViewCallOptions = {}
     ) => {
       cancel()
       const scrollParent = findScrollableAncestor(el)
@@ -91,9 +106,13 @@ export const useScrollIntoView = () => {
       const restoreAnchor = () => {
         restoreTimer.clear()
         stopScrollRef.current = null
-        scrollEndTarget.removeEventListener('scrollend', restoreAnchor)
+        scrollEndTarget.removeEventListener('scrollend', finishSmoothScroll)
         scrollParent.style.overflowAnchor = previousAnchor
         restoreAnchorRef.current = null
+      }
+      const finishSmoothScroll = () => {
+        restoreAnchor()
+        onScrollEnd?.()
       }
       restoreAnchorRef.current = restoreAnchor
 
@@ -108,23 +127,25 @@ export const useScrollIntoView = () => {
       // machinery to move it anyway.
       if (Math.abs(target - scrollParent.scrollTop) <= SNAP_PX) {
         restoreTimer.start(restoreAnchor, ANCHOR_SUPPRESSION_MS)
+        onScrollEnd?.()
       } else if (!smooth) {
         scrollParent.scrollTop = target
         restoreTimer.start(restoreAnchor, ANCHOR_SUPPRESSION_MS)
+        onScrollEnd?.()
       } else {
         // The browser's own smooth scroll, rather than one stepped through
         // `scrollTop` each frame, runs off the main thread where it can, so
         // work on the page alongside it (an iframe loading, say) doesn't
         // make it stutter. Anchoring stays off until it ends.
         scrollParent.scrollTo({ top: target, behavior: 'smooth' })
-        scrollEndTarget.addEventListener('scrollend', restoreAnchor)
+        scrollEndTarget.addEventListener('scrollend', finishSmoothScroll)
         // Scrolling instantly to where it already is cuts a smooth scroll short.
         stopScrollRef.current = () =>
           scrollParent.scrollTo({
             top: scrollParent.scrollTop,
             behavior: 'instant',
           })
-        restoreTimer.start(restoreAnchor, SMOOTH_SCROLL_MAX_MS)
+        restoreTimer.start(finishSmoothScroll, SMOOTH_SCROLL_MAX_MS)
       }
     },
     [cancel, restoreTimer]

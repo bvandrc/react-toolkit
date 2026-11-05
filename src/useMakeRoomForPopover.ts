@@ -6,7 +6,10 @@
 
 import { useCallback } from 'react'
 
-import { useScrollIntoView } from './useScrollIntoView'
+import {
+  type ScrollIntoViewBehavior,
+  useScrollIntoView,
+} from './useScrollIntoView'
 import { findScrollableAncestor, getRoomAround } from './utils'
 
 export interface MakeRoomForPopoverOptions {
@@ -14,6 +17,8 @@ export interface MakeRoomForPopoverOptions {
   scrollTarget?: React.RefObject<HTMLElement | null>
   /** Height the popover takes beyond its content: its gap from the trigger, its borders. */
   extraHeightPx?: number
+  /** How the scroll gets there; `'instant'` by default. */
+  scrollBehavior?: ScrollIntoViewBehavior
 }
 
 /**
@@ -27,7 +32,11 @@ export interface MakeRoomForPopoverOptions {
  */
 export const useMakeRoomForPopover = (
   triggerRef: React.RefObject<HTMLElement | null>,
-  { scrollTarget, extraHeightPx = 0 }: MakeRoomForPopoverOptions = {}
+  {
+    scrollTarget,
+    extraHeightPx = 0,
+    scrollBehavior = 'instant',
+  }: MakeRoomForPopoverOptions = {}
 ) => {
   const { scrollIntoView } = useScrollIntoView()
 
@@ -41,9 +50,9 @@ export const useMakeRoomForPopover = (
       // Its full height, whatever max height the popover is capped to so far.
       const needed = popover.scrollHeight + extraHeightPx
       if (needed > Math.max(above, below)) {
-        scrollIntoView(target, 'start')
+        scrollIntoView(target, 'start', { behavior: scrollBehavior })
       }
     },
-    [triggerRef, scrollTarget, extraHeightPx, scrollIntoView]
+    [triggerRef, scrollTarget, extraHeightPx, scrollBehavior, scrollIntoView]
   )
 }

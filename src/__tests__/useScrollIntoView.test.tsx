@@ -154,6 +154,16 @@ describe('useScrollIntoView', () => {
     expect(scrollParent.style.overflowAnchor).toBe('auto')
   })
 
+  it('reports the scroll ended straight away when it jumps', () => {
+    const { el } = renderElInScrollParent({ top: 250, height: 100 })
+    const onScrollEnd = vi.fn()
+    const { result } = renderHook(() => useScrollIntoView())
+
+    act(() => result.current.scrollIntoView(el, 'nearest', { onScrollEnd }))
+
+    expect(onScrollEnd).toHaveBeenCalledOnce()
+  })
+
   describe("with behavior 'smooth'", () => {
     /** Renders `el` cut off below its scroll container, with the container's `scrollTo` stubbed out. */
     const renderCutOffEl = () => {
@@ -181,6 +191,44 @@ describe('useScrollIntoView', () => {
         scrollParent.dispatchEvent(new Event('scrollend'))
       })
       expect(scrollParent.style.overflowAnchor).toBe('auto')
+    })
+
+    it('reports the scroll ended only once it does', () => {
+      const { el, scrollParent } = renderCutOffEl()
+      const onScrollEnd = vi.fn()
+      const { result } = renderHook(() => useScrollIntoView())
+
+      act(() =>
+        result.current.scrollIntoView(el, 'nearest', {
+          behavior: 'smooth',
+          onScrollEnd,
+        })
+      )
+      expect(onScrollEnd).not.toHaveBeenCalled()
+
+      act(() => {
+        scrollParent.dispatchEvent(new Event('scrollend'))
+      })
+      expect(onScrollEnd).toHaveBeenCalledOnce()
+    })
+
+    it('never reports the end of a scroll cancelled first', () => {
+      const { el, scrollParent } = renderCutOffEl()
+      const onScrollEnd = vi.fn()
+      const { result } = renderHook(() => useScrollIntoView())
+
+      act(() =>
+        result.current.scrollIntoView(el, 'nearest', {
+          behavior: 'smooth',
+          onScrollEnd,
+        })
+      )
+      act(() => result.current.cancel())
+      act(() => {
+        scrollParent.dispatchEvent(new Event('scrollend'))
+      })
+
+      expect(onScrollEnd).not.toHaveBeenCalled()
     })
 
     it('jumps instead when the user prefers reduced motion', () => {

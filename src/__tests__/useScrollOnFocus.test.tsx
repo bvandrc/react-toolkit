@@ -1,18 +1,23 @@
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 
 import {
   mockResizeObserver,
   mockTouchDevice,
   mockVisualViewport,
 } from '@/test-support'
+import type { ScrollIntoViewBehavior } from '@/useScrollIntoView'
 import { useScrollOnFocus } from '../useScrollOnFocus'
 
 afterEach(() => {
   vi.restoreAllMocks()
 })
 
-const Field = () => {
-  const handlers = useScrollOnFocus('nearest')
+const Field = ({
+  scrollBehavior,
+}: {
+  scrollBehavior?: ScrollIntoViewBehavior
+}) => {
+  const handlers = useScrollOnFocus('nearest', scrollBehavior)
   // `fireEvent.focus`/`blur` dispatch directly, so this needs no real
   // interactivity of its own -- only the focus/blur handlers under test.
   return <div data-testid="field" {...handlers} />
@@ -28,14 +33,17 @@ const VISIBLE_HEIGHT = 200
  * nothing to measure without this. `layout` is read live, so a case can
  * resize the field by changing it.
  */
-const renderFieldInScrollParent = (layout: {
-  top: number
-  height: number
-  visibleHeight?: number
-}) => {
+const renderFieldInScrollParent = (
+  layout: {
+    top: number
+    height: number
+    visibleHeight?: number
+  },
+  scrollBehavior?: ScrollIntoViewBehavior
+) => {
   const { getByTestId } = render(
     <div data-testid="scroll-parent" style={{ overflowY: 'auto' }}>
-      <Field />
+      <Field scrollBehavior={scrollBehavior} />
     </div>
   )
   const scrollParent = getByTestId('scroll-parent')
@@ -152,5 +160,49 @@ describe('useScrollOnFocus', () => {
     fireEvent.blur(field, { relatedTarget: other })
 
     expect(scrollParent.scrollTop).toBe(120)
+  })
+
+  describe("with scrollBehavior 'smooth'", () => {
+    /** Renders the field 50px cut off below, with the container's `scrollTo` stubbed out. */
+    const renderCutOffField = () => {
+      const layout = renderFieldInScrollParent(
+        { top: 150, height: 100 },
+        'smooth'
+      )
+      const scrollTo = vi
+        .spyOn(layout.scrollParent, 'scrollTo')
+        .mockImplementation(() => {
+          // happy-dom has no smooth scroll to run, so this only records the request.
+        })
+      return { ...layout, scrollTo }
+    }
+
+    it('scrolls smoothly on focus', () => {
+      mockTouchDevice(false)
+      const { field, scrollTo } = renderCutOffField()
+
+      fireEvent.focus(field)
+
+      // How a smooth scroll runs is `useScrollIntoView`'s own behavior to
+      // cover -- this only checks the option reaches it.
+      expect(scrollTo).toHaveBeenCalledWith({ top: 50, behavior: 'smooth' })
+    })
+
+    it('puts the field back where the smooth scroll landed it once the keyboard closes', () => {
+      mockTouchDevice(true)
+      const { field, scrollParent } = renderCutOffField()
+
+      fireEvent.focus(field)
+      // The smooth scroll landing.
+      scrollParent.scrollTop = 50
+      act(() => {
+        scrollParent.dispatchEvent(new Event('scrollend'))
+      })
+      // iOS scrolling the container on its own to keep the caret clear.
+      scrollParent.scrollTop = 120
+      fireEvent.blur(field)
+
+      expect(scrollParent.scrollTop).toBe(50)
+    })
   })
 })

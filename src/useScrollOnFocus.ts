@@ -8,7 +8,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useScrollIntoView } from './useScrollIntoView'
+import {
+  type ScrollIntoViewBehavior,
+  useScrollIntoView,
+} from './useScrollIntoView'
 import { useTimer } from './useTimer'
 import { useVisualViewportListener } from './useVisualViewportListener'
 import {
@@ -26,8 +29,15 @@ const getOffsetInScrollParent = (el: HTMLElement) =>
   el.getBoundingClientRect().top -
   getVisibleBounds(findScrollableAncestor(el)).top
 
-/** Focus and blur handlers to spread onto the element to keep where `block` puts it. */
-export const useScrollOnFocus = (block: ScrollBlock) => {
+/**
+ * Focus and blur handlers to spread onto the element to keep where `block` puts it.
+ *
+ * Scrolls there as `scrollBehavior` asks, `'instant'` by default.
+ */
+export const useScrollOnFocus = (
+  block: ScrollBlock,
+  scrollBehavior: ScrollIntoViewBehavior = 'instant'
+) => {
   const [focusedEl, setFocusedEl] = useState<HTMLElement | null>(null)
   // Where the element sat after this hook last scrolled it, which is where
   // the keyboard-dismissal recovery puts it back.
@@ -37,10 +47,16 @@ export const useScrollOnFocus = (block: ScrollBlock) => {
 
   const keepInView = useCallback(
     (el: HTMLElement) => {
-      scrollIntoView(el, block)
-      settledOffsetRef.current = getOffsetInScrollParent(el)
+      scrollIntoView(el, block, {
+        behavior: scrollBehavior,
+        // Only once it lands: a smooth scroll is still on its way when this
+        // call returns.
+        onScrollEnd: () => {
+          settledOffsetRef.current = getOffsetInScrollParent(el)
+        },
+      })
     },
-    [scrollIntoView, block]
+    [scrollIntoView, block, scrollBehavior]
   )
 
   const restoreSettledOffset = useCallback((el: HTMLElement) => {
