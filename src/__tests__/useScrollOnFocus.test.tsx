@@ -62,7 +62,7 @@ describe('useScrollOnFocus', () => {
 
     fireEvent.focus(field)
 
-    // Which way and how far for each case is `useEasedScrollIntoView`'s own
+    // Which way and how far for each case is `useScrollIntoView`'s own
     // behavior to cover -- this only checks that focus asks it to scroll.
     expect(scrollParent.scrollTop).toBe(50)
   })

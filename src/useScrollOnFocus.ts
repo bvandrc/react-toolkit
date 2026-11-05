@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useEasedScrollIntoView } from './useEasedScrollIntoView'
+import { useScrollIntoView } from './useScrollIntoView'
 import { useTimer } from './useTimer'
 import { useVisualViewportListener } from './useVisualViewportListener'
 import {
@@ -33,7 +33,7 @@ export const useScrollOnFocus = (block: ScrollBlock) => {
   // the keyboard-dismissal recovery puts it back.
   const settledOffsetRef = useRef(0)
   const resyncTimer = useTimer()
-  const { scrollIntoView, cancel } = useEasedScrollIntoView()
+  const { scrollIntoView, cancel } = useScrollIntoView()
 
   const keepInView = useCallback(
     (el: HTMLElement) => {

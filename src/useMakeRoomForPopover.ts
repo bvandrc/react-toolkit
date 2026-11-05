@@ -6,7 +6,7 @@
 
 import { useCallback } from 'react'
 
-import { useEasedScrollIntoView } from './useEasedScrollIntoView'
+import { useScrollIntoView } from './useScrollIntoView'
 import { findScrollableAncestor, getRoomAround } from './utils'
 
 export interface MakeRoomForPopoverOptions {
@@ -29,7 +29,7 @@ export const useMakeRoomForPopover = (
   triggerRef: React.RefObject<HTMLElement | null>,
   { scrollTarget, extraHeightPx = 0 }: MakeRoomForPopoverOptions = {}
 ) => {
-  const { scrollIntoView } = useEasedScrollIntoView()
+  const { scrollIntoView } = useScrollIntoView()
 
   return useCallback(
     (popover: HTMLElement | null) => {
