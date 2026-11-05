@@ -1,5 +1,6 @@
 import { act, render, renderHook } from '@testing-library/react'
 
+import { mockMatchMedia } from '@/test-support'
 import { useEasedScrollIntoView } from '../useEasedScrollIntoView'
 
 afterEach(() => {
@@ -151,5 +152,83 @@ describe('useEasedScrollIntoView', () => {
     unmount()
 
     expect(scrollParent.style.overflowAnchor).toBe('auto')
+  })
+
+  describe("with behavior 'smooth'", () => {
+    /** Renders `el` cut off below its scroll container, with the container's `scrollTo` stubbed out. */
+    const renderCutOffEl = () => {
+      const layout = renderElInScrollParent({ top: 250, height: 100 })
+      layout.scrollParent.style.overflowAnchor = 'auto'
+      const scrollTo = vi
+        .spyOn(layout.scrollParent, 'scrollTo')
+        .mockImplementation(() => {
+          // happy-dom has no smooth scroll to run, so this only records the request.
+        })
+      return { ...layout, scrollTo }
+    }
+
+    it("hands the scroll to the browser's own smooth scroll, keeping anchoring off until it ends", () => {
+      const { el, scrollParent, scrollTo } = renderCutOffEl()
+      const { result } = renderHook(() => useEasedScrollIntoView())
+
+      act(() =>
+        result.current.scrollIntoView(el, 'nearest', { behavior: 'smooth' })
+      )
+      expect(scrollTo).toHaveBeenCalledWith({ top: 150, behavior: 'smooth' })
+      expect(scrollParent.style.overflowAnchor).toBe('none')
+
+      act(() => {
+        scrollParent.dispatchEvent(new Event('scrollend'))
+      })
+      expect(scrollParent.style.overflowAnchor).toBe('auto')
+    })
+
+    it('jumps instead when the user prefers reduced motion', () => {
+      mockMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+      const { el, scrollParent, scrollTo } = renderCutOffEl()
+      const { result } = renderHook(() => useEasedScrollIntoView())
+
+      act(() =>
+        result.current.scrollIntoView(el, 'nearest', { behavior: 'smooth' })
+      )
+
+      expect(scrollTo).not.toHaveBeenCalled()
+      expect(scrollParent.scrollTop).toBe(150)
+    })
+
+    it('stops the scroll where it is on cancel, and restores anchoring', () => {
+      const { el, scrollParent, scrollTo } = renderCutOffEl()
+      const { result } = renderHook(() => useEasedScrollIntoView())
+
+      act(() =>
+        result.current.scrollIntoView(el, 'nearest', { behavior: 'smooth' })
+      )
+      // Partway there when it's cancelled.
+      scrollParent.scrollTop = 60
+      act(() => result.current.cancel())
+
+      expect(scrollTo).toHaveBeenLastCalledWith({
+        top: 60,
+        behavior: 'instant',
+      })
+      expect(scrollParent.style.overflowAnchor).toBe('auto')
+    })
+
+    it('restores anchoring anyway where the browser never fires scrollend', () => {
+      vi.useFakeTimers()
+      const { el, scrollParent } = renderCutOffEl()
+      const { result } = renderHook(() => useEasedScrollIntoView())
+
+      act(() =>
+        result.current.scrollIntoView(el, 'nearest', { behavior: 'smooth' })
+      )
+      // Past the anchor-suppression window an instant scroll gets, but well
+      // short of what a smooth one waits for its end.
+      act(() => vi.advanceTimersByTime(PAST_SUPPRESSION_MS))
+      expect(scrollParent.style.overflowAnchor).toBe('none')
+
+      act(() => vi.advanceTimersByTime(1000))
+      expect(scrollParent.style.overflowAnchor).toBe('auto')
+    })
   })
 })
