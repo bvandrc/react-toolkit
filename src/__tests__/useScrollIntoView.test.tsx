@@ -5,6 +5,7 @@ import { useScrollIntoView } from '../useScrollIntoView'
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
   vi.useRealTimers()
 })
 
@@ -243,6 +244,45 @@ describe('useScrollIntoView', () => {
       act(() =>
         result.current.scrollIntoView(el, 'nearest', { behavior: 'instant' })
       )
+      expect(scrollParent.scrollTop).toBe(150)
+    })
+
+    it('ignores a scrollend that comes before it lands', () => {
+      const { el, scrollParent } = renderCutOffEl()
+      vi.spyOn(scrollParent, 'scrollHeight', 'get').mockReturnValue(1000)
+      const onScrollEnd = vi.fn()
+      const { result } = renderHook(() => useScrollIntoView())
+
+      act(() =>
+        result.current.scrollIntoView(el, 'nearest', {
+          behavior: 'smooth',
+          onScrollEnd,
+        })
+      )
+      // The end of the scroll this one interrupted, still at the start.
+      act(() => {
+        scrollParent.dispatchEvent(new Event('scrollend'))
+      })
+      expect(onScrollEnd).not.toHaveBeenCalled()
+
+      scrollParent.scrollTop = 150
+      act(() => {
+        scrollParent.dispatchEvent(new Event('scrollend'))
+      })
+      expect(onScrollEnd).toHaveBeenCalledOnce()
+    })
+
+    it("jumps instead where the DOM can't tell whether the user prefers reduced motion", () => {
+      // jsdom, say, has no `matchMedia`.
+      vi.stubGlobal('matchMedia', undefined)
+      const { el, scrollParent, scrollTo } = renderCutOffEl()
+      const { result } = renderHook(() => useScrollIntoView())
+
+      act(() =>
+        result.current.scrollIntoView(el, 'nearest', { behavior: 'smooth' })
+      )
+
+      expect(scrollTo).not.toHaveBeenCalled()
       expect(scrollParent.scrollTop).toBe(150)
     })
 

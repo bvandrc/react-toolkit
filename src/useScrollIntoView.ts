@@ -117,7 +117,7 @@ export const useScrollIntoView = ({
       const restoreAnchor = () => {
         restoreTimer.clear()
         stopScrollRef.current = null
-        scrollEndTarget.removeEventListener('scrollend', finishSmoothScroll)
+        scrollEndTarget.removeEventListener('scrollend', onScrollEndEvent)
         scrollParent.style.overflowAnchor = previousAnchor
         restoreAnchorRef.current = null
       }
@@ -125,11 +125,28 @@ export const useScrollIntoView = ({
         restoreAnchor()
         onScrollEnd?.()
       }
+      const target = getTargetScrollTop(el, block, scrollParent)
+      const onScrollEndEvent = () => {
+        const top = scrollParent.scrollTop
+        const maxTop = scrollParent.scrollHeight - scrollParent.clientHeight
+        // The scroll this call interrupted can still end after this one has
+        // started, so only count an end at the target, or at the edge of the
+        // scroll range where a target past it is clamped.
+        if (
+          Math.abs(top - target) <= SNAP_PX ||
+          (target > top && top >= maxTop - SNAP_PX) ||
+          (target < top && top <= SNAP_PX)
+        ) {
+          finishSmoothScroll()
+        }
+      }
       restoreAnchorRef.current = restoreAnchor
 
-      const target = getTargetScrollTop(el, block, scrollParent)
       const smooth =
         behavior === 'smooth' &&
+        // Test DOMs like jsdom have neither, so they get the jump.
+        typeof scrollParent.scrollTo === 'function' &&
+        typeof window.matchMedia === 'function' &&
         !window.matchMedia(REDUCED_MOTION_QUERY).matches
       // Writing `scrollTop` at all -- even to the value it's already at --
       // is a live scroll action, not a guaranteed no-op: with anchoring
@@ -149,7 +166,7 @@ export const useScrollIntoView = ({
         // work on the page alongside it (an iframe loading, say) doesn't
         // make it stutter. Anchoring stays off until it ends.
         scrollParent.scrollTo({ top: target, behavior: 'smooth' })
-        scrollEndTarget.addEventListener('scrollend', finishSmoothScroll)
+        scrollEndTarget.addEventListener('scrollend', onScrollEndEvent)
         // Scrolling instantly to where it already is cuts a smooth scroll short.
         stopScrollRef.current = () =>
           scrollParent.scrollTo({

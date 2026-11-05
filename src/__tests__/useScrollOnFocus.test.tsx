@@ -184,4 +184,20 @@ describe('useScrollOnFocus', () => {
 
     expect(scrollParent.scrollTop).toBe(50)
   })
+
+  it('leaves the field where it was on a blur before a smooth scroll lands, on touch devices', () => {
+    mockTouchDevice(true)
+    const { field, scrollParent } = renderFieldInScrollParent(
+      { top: 150, height: 100 },
+      'smooth'
+    )
+    vi.spyOn(scrollParent, 'scrollTo').mockImplementation(() => {
+      // happy-dom has no smooth scroll to run, so this only stands in for it.
+    })
+
+    fireEvent.focus(field)
+    fireEvent.blur(field)
+
+    expect(scrollParent.scrollTop).toBe(0)
+  })
 })

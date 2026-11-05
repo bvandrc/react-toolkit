@@ -48,6 +48,9 @@ export const useScrollOnFocus = (
 
   const keepInView = useCallback(
     (el: HTMLElement) => {
+      // Where it starts, until it lands: a scroll cancelled on the way (by a
+      // blur, say) never reports landing.
+      settledOffsetRef.current = getOffsetInScrollParent(el)
       scrollIntoView(el, block, {
         // Only once it lands: a smooth scroll is still on its way when this
         // call returns.
