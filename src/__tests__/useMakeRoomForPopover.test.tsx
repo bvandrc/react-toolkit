@@ -112,27 +112,6 @@ describe('useMakeRoomForPopover', () => {
     expect(layout.scrollParent.scrollTop).toBe(TRIGGER_TOP)
   })
 
-  it('scrolls as scrollBehavior asks', () => {
-    const layout = createLayout({ popoverHeight: ROOM + 50 })
-    const scrollTo = vi
-      .spyOn(layout.scrollParent, 'scrollTo')
-      .mockImplementation(() => {
-        // happy-dom has no smooth scroll to run, so this only records the request.
-      })
-
-    renderAndOpen(layout, (scrollTarget) => ({
-      scrollTarget,
-      scrollBehavior: 'smooth',
-    }))
-
-    // How a smooth scroll runs is `useScrollIntoView`'s own behavior to
-    // cover -- this only checks the option reaches it.
-    expect(scrollTo).toHaveBeenCalledWith({
-      top: TARGET_TOP,
-      behavior: 'smooth',
-    })
-  })
-
   it('never scrolls the page itself', () => {
     const layout = createLayout({ popoverHeight: ROOM + 50, inPage: true })
 

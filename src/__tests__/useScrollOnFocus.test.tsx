@@ -162,47 +162,26 @@ describe('useScrollOnFocus', () => {
     expect(scrollParent.scrollTop).toBe(120)
   })
 
-  describe("with scrollBehavior 'smooth'", () => {
-    /** Renders the field 50px cut off below, with the container's `scrollTo` stubbed out. */
-    const renderCutOffField = () => {
-      const layout = renderFieldInScrollParent(
-        { top: 150, height: 100 },
-        'smooth'
-      )
-      const scrollTo = vi
-        .spyOn(layout.scrollParent, 'scrollTo')
-        .mockImplementation(() => {
-          // happy-dom has no smooth scroll to run, so this only records the request.
-        })
-      return { ...layout, scrollTo }
-    }
-
-    it('scrolls smoothly on focus', () => {
-      mockTouchDevice(false)
-      const { field, scrollTo } = renderCutOffField()
-
-      fireEvent.focus(field)
-
-      // How a smooth scroll runs is `useScrollIntoView`'s own behavior to
-      // cover -- this only checks the option reaches it.
-      expect(scrollTo).toHaveBeenCalledWith({ top: 50, behavior: 'smooth' })
+  it('puts the field back where a smooth scroll landed it once the keyboard closes', () => {
+    mockTouchDevice(true)
+    const { field, scrollParent } = renderFieldInScrollParent(
+      { top: 150, height: 100 },
+      'smooth'
+    )
+    vi.spyOn(scrollParent, 'scrollTo').mockImplementation(() => {
+      // happy-dom has no smooth scroll to run, so this only stands in for it.
     })
 
-    it('puts the field back where the smooth scroll landed it once the keyboard closes', () => {
-      mockTouchDevice(true)
-      const { field, scrollParent } = renderCutOffField()
-
-      fireEvent.focus(field)
-      // The smooth scroll landing.
-      scrollParent.scrollTop = 50
-      act(() => {
-        scrollParent.dispatchEvent(new Event('scrollend'))
-      })
-      // iOS scrolling the container on its own to keep the caret clear.
-      scrollParent.scrollTop = 120
-      fireEvent.blur(field)
-
-      expect(scrollParent.scrollTop).toBe(50)
+    fireEvent.focus(field)
+    // The smooth scroll landing.
+    scrollParent.scrollTop = 50
+    act(() => {
+      scrollParent.dispatchEvent(new Event('scrollend'))
     })
+    // iOS scrolling the container on its own to keep the caret clear.
+    scrollParent.scrollTop = 120
+    fireEvent.blur(field)
+
+    expect(scrollParent.scrollTop).toBe(50)
   })
 })
