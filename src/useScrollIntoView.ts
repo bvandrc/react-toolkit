@@ -50,7 +50,10 @@ export type ScrollIntoViewBehavior = Extract<
 >
 
 export interface ScrollIntoViewCallOptions {
-  /** The hook's `defaultBehavior` by default. */
+  /**
+   * How this scroll gets there, when it differs from the hook's `defaultBehavior`.
+   * @default 'instant'
+   */
   behavior?: ScrollIntoViewBehavior
   /**
    * Called once the element is where `block` asks.
