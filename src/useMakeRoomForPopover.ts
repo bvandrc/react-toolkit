@@ -15,9 +15,15 @@ import { findScrollableAncestor, getRoomAround } from './utils'
 export interface MakeRoomForPopoverOptions {
   /** What moves to the top of its scroll area; the trigger itself by default. */
   scrollTarget?: React.RefObject<HTMLElement | null>
-  /** Height the popover takes beyond its content: its gap from the trigger, its borders. */
+  /**
+   * Height the popover takes beyond its content: its gap from the trigger, its borders.
+   * @default 0
+   */
   extraHeightPx?: number
-  /** How the scroll gets there; `'instant'` by default. */
+  /**
+   * How the scroll gets there.
+   * @default 'instant'
+   */
   scrollBehavior?: ScrollIntoViewBehavior
 }
 
