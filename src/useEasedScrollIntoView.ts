@@ -8,7 +8,8 @@ import { useScrollIntoView } from './useScrollIntoView'
 /**
  * `useScrollIntoView`, with every scroll animated.
  *
- * @deprecated Use `useScrollIntoView('smooth')`. This will be removed in the
- * next major release.
+ * @deprecated Use `useScrollIntoView({ scrollBehavior: 'smooth' })`. This
+ * will be removed in the next major release.
  */
-export const useEasedScrollIntoView = () => useScrollIntoView('smooth')
+export const useEasedScrollIntoView = () =>
+  useScrollIntoView({ scrollBehavior: 'smooth' })

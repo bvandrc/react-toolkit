@@ -49,11 +49,16 @@ export type ScrollIntoViewBehavior = Extract<
   'instant' | 'smooth'
 >
 
-export interface ScrollIntoViewCallOptions {
+export interface ScrollIntoViewHookOptions {
   /**
-   * How this scroll gets there, when it differs from the hook's `defaultBehavior`.
+   * How a scroll gets there.
    * @default 'instant'
    */
+  scrollBehavior?: ScrollIntoViewBehavior
+}
+
+export interface ScrollIntoViewCallOptions {
+  /** How this one scroll gets there, overriding the hook's `scrollBehavior`. */
   behavior?: ScrollIntoViewBehavior
   /**
    * Called once the element is where `block` asks.
@@ -69,14 +74,14 @@ export interface ScrollIntoViewCallOptions {
  * `block` asks, and `cancel`, which undoes anything a call still has pending
  * (also run automatically on unmount).
  *
- * Each scroll goes as `defaultBehavior` asks, `'instant'` by default, unless
- * its call says otherwise. Calling `scrollIntoView` again, on the same or a
- * different element, cancels anything still pending first. Cancelling an
- * animated scroll stops it where it is.
+ * Each scroll goes as `scrollBehavior` asks, unless its call says otherwise.
+ * Calling `scrollIntoView` again, on the same or a different element, cancels
+ * anything still pending first. Cancelling an animated scroll stops it where
+ * it is.
  */
-export const useScrollIntoView = (
-  defaultBehavior: ScrollIntoViewBehavior = 'instant'
-) => {
+export const useScrollIntoView = ({
+  scrollBehavior = 'instant',
+}: ScrollIntoViewHookOptions = {}) => {
   const restoreTimer = useTimer()
   const restoreAnchorRef = useRef<(() => void) | null>(null)
   const stopScrollRef = useRef<(() => void) | null>(null)
@@ -92,10 +97,7 @@ export const useScrollIntoView = (
     (
       el: HTMLElement,
       block: ScrollBlock,
-      {
-        behavior = defaultBehavior,
-        onScrollEnd,
-      }: ScrollIntoViewCallOptions = {}
+      { behavior = scrollBehavior, onScrollEnd }: ScrollIntoViewCallOptions = {}
     ) => {
       cancel()
       const scrollParent = findScrollableAncestor(el)
@@ -157,7 +159,7 @@ export const useScrollIntoView = (
         restoreTimer.start(finishSmoothScroll, SMOOTH_SCROLL_MAX_MS)
       }
     },
-    [cancel, restoreTimer, defaultBehavior]
+    [cancel, restoreTimer, scrollBehavior]
   )
 
   return { scrollIntoView, cancel }

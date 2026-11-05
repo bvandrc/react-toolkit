@@ -233,7 +233,9 @@ describe('useScrollIntoView', () => {
 
     it("takes it as the hook's default, which a call can still override", () => {
       const { el, scrollParent, scrollTo } = renderCutOffEl()
-      const { result } = renderHook(() => useScrollIntoView('smooth'))
+      const { result } = renderHook(() =>
+        useScrollIntoView({ scrollBehavior: 'smooth' })
+      )
 
       act(() => result.current.scrollIntoView(el, 'nearest'))
       expect(scrollTo).toHaveBeenCalledWith({ top: 150, behavior: 'smooth' })

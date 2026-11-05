@@ -17,7 +17,7 @@ const Field = ({
 }: {
   scrollBehavior?: ScrollIntoViewBehavior
 }) => {
-  const handlers = useScrollOnFocus('nearest', scrollBehavior)
+  const handlers = useScrollOnFocus('nearest', { scrollBehavior })
   // `fireEvent.focus`/`blur` dispatch directly, so this needs no real
   // interactivity of its own -- only the focus/blur handlers under test.
   return <div data-testid="field" {...handlers} />
