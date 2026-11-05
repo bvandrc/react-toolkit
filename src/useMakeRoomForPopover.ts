@@ -38,7 +38,7 @@ export const useMakeRoomForPopover = (
     scrollBehavior = 'instant',
   }: MakeRoomForPopoverOptions = {}
 ) => {
-  const { scrollIntoView } = useScrollIntoView()
+  const { scrollIntoView } = useScrollIntoView(scrollBehavior)
 
   return useCallback(
     (popover: HTMLElement | null) => {
@@ -50,9 +50,9 @@ export const useMakeRoomForPopover = (
       // Its full height, whatever max height the popover is capped to so far.
       const needed = popover.scrollHeight + extraHeightPx
       if (needed > Math.max(above, below)) {
-        scrollIntoView(target, 'start', { behavior: scrollBehavior })
+        scrollIntoView(target, 'start')
       }
     },
-    [triggerRef, scrollTarget, extraHeightPx, scrollBehavior, scrollIntoView]
+    [triggerRef, scrollTarget, extraHeightPx, scrollIntoView]
   )
 }

@@ -43,12 +43,11 @@ export const useScrollOnFocus = (
   // the keyboard-dismissal recovery puts it back.
   const settledOffsetRef = useRef(0)
   const resyncTimer = useTimer()
-  const { scrollIntoView, cancel } = useScrollIntoView()
+  const { scrollIntoView, cancel } = useScrollIntoView(scrollBehavior)
 
   const keepInView = useCallback(
     (el: HTMLElement) => {
       scrollIntoView(el, block, {
-        behavior: scrollBehavior,
         // Only once it lands: a smooth scroll is still on its way when this
         // call returns.
         onScrollEnd: () => {
@@ -56,7 +55,7 @@ export const useScrollOnFocus = (
         },
       })
     },
-    [scrollIntoView, block, scrollBehavior]
+    [scrollIntoView, block]
   )
 
   const restoreSettledOffset = useCallback((el: HTMLElement) => {

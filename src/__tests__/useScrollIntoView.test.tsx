@@ -231,6 +231,19 @@ describe('useScrollIntoView', () => {
       expect(onScrollEnd).not.toHaveBeenCalled()
     })
 
+    it("takes it as the hook's default, which a call can still override", () => {
+      const { el, scrollParent, scrollTo } = renderCutOffEl()
+      const { result } = renderHook(() => useScrollIntoView('smooth'))
+
+      act(() => result.current.scrollIntoView(el, 'nearest'))
+      expect(scrollTo).toHaveBeenCalledWith({ top: 150, behavior: 'smooth' })
+
+      act(() =>
+        result.current.scrollIntoView(el, 'nearest', { behavior: 'instant' })
+      )
+      expect(scrollParent.scrollTop).toBe(150)
+    })
+
     it('jumps instead when the user prefers reduced motion', () => {
       mockMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
       const { el, scrollParent, scrollTo } = renderCutOffEl()

@@ -50,7 +50,7 @@ export type ScrollIntoViewBehavior = Extract<
 >
 
 export interface ScrollIntoViewCallOptions {
-  /** `'instant'` by default. */
+  /** The hook's `defaultBehavior` by default. */
   behavior?: ScrollIntoViewBehavior
   /**
    * Called once the element is where `block` asks.
@@ -66,11 +66,14 @@ export interface ScrollIntoViewCallOptions {
  * `block` asks, and `cancel`, which undoes anything a call still has pending
  * (also run automatically on unmount).
  *
- * Calling `scrollIntoView` again, on the same or a different element, cancels
- * anything still pending first. Cancelling an animated scroll stops it where
- * it is.
+ * Each scroll goes as `defaultBehavior` asks, `'instant'` by default, unless
+ * its call says otherwise. Calling `scrollIntoView` again, on the same or a
+ * different element, cancels anything still pending first. Cancelling an
+ * animated scroll stops it where it is.
  */
-export const useScrollIntoView = () => {
+export const useScrollIntoView = (
+  defaultBehavior: ScrollIntoViewBehavior = 'instant'
+) => {
   const restoreTimer = useTimer()
   const restoreAnchorRef = useRef<(() => void) | null>(null)
   const stopScrollRef = useRef<(() => void) | null>(null)
@@ -86,7 +89,10 @@ export const useScrollIntoView = () => {
     (
       el: HTMLElement,
       block: ScrollBlock,
-      { behavior = 'instant', onScrollEnd }: ScrollIntoViewCallOptions = {}
+      {
+        behavior = defaultBehavior,
+        onScrollEnd,
+      }: ScrollIntoViewCallOptions = {}
     ) => {
       cancel()
       const scrollParent = findScrollableAncestor(el)
@@ -148,7 +154,7 @@ export const useScrollIntoView = () => {
         restoreTimer.start(finishSmoothScroll, SMOOTH_SCROLL_MAX_MS)
       }
     },
-    [cancel, restoreTimer]
+    [cancel, restoreTimer, defaultBehavior]
   )
 
   return { scrollIntoView, cancel }
