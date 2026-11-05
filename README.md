@@ -36,8 +36,8 @@ Requires React 18 or 19. ESM only, with types included.
 
 | Export | What it does |
 | --- | --- |
-| `useScrollOnFocus` | Handlers that scroll a focused element into view and keep it there as it resizes. On touch devices, also restores the scroll position the on-screen keyboard leaves behind when it closes. Jumps by default; pass `'smooth'` as its second argument to animate it. |
 | `useScrollIntoView` | `scrollIntoView` within an element's own scroll container, held against scroll anchoring, and cancelable. Jumps by default; `{ behavior: 'smooth' }` animates it, except for users who prefer reduced motion. `onScrollEnd` is called once it lands. |
+| `useScrollOnFocus` | Handlers that scroll a focused element into view and keep it there as it resizes. On touch devices, also restores the scroll position the on-screen keyboard leaves behind when it closes. Jumps by default; pass `'smooth'` as its second argument to animate it. |
 | `useEasedScrollIntoView` | **Deprecated**, and removed in the next major release: `useScrollIntoView` with every scroll animated. Use `useScrollIntoView` with `{ behavior: 'smooth' }` instead. |
 | `useMakeRoomForPopover` | When a popover mounts too tall to fit above or below its trigger, scrolls the trigger's scroll area so it does. Jumps by default; `scrollBehavior: 'smooth'` animates it. |
 | `getTargetScrollTop` | The `scrollTop` that would bring an element into view within its scroll container. |
