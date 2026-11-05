@@ -185,7 +185,7 @@ describe('useScrollOnFocus', () => {
     expect(scrollParent.scrollTop).toBe(50)
   })
 
-  it('leaves the field where it was on a blur before a smooth scroll lands, on touch devices', () => {
+  it('leaves the field where a blur stopped a smooth scroll, on touch devices', () => {
     mockTouchDevice(true)
     const { field, scrollParent } = renderFieldInScrollParent(
       { top: 150, height: 100 },
@@ -196,8 +196,10 @@ describe('useScrollOnFocus', () => {
     })
 
     fireEvent.focus(field)
+    // The smooth scroll partway there when the blur stops it.
+    scrollParent.scrollTop = 30
     fireEvent.blur(field)
 
-    expect(scrollParent.scrollTop).toBe(0)
+    expect(scrollParent.scrollTop).toBe(30)
   })
 })

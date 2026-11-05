@@ -247,6 +247,43 @@ describe('useScrollIntoView', () => {
       expect(scrollParent.scrollTop).toBe(150)
     })
 
+    it('hands a smooth scroll still running over to the next call, rather than stopping it', () => {
+      const { el, scrollTo } = renderCutOffEl()
+      const { result } = renderHook(() => useScrollIntoView())
+
+      act(() =>
+        result.current.scrollIntoView(el, 'start', { behavior: 'smooth' })
+      )
+      act(() =>
+        result.current.scrollIntoView(el, 'nearest', { behavior: 'smooth' })
+      )
+
+      // No instant stop between them, which would restart the animation.
+      expect(scrollTo.mock.calls).toEqual([
+        [{ top: 250, behavior: 'smooth' }],
+        [{ top: 150, behavior: 'smooth' }],
+      ])
+    })
+
+    it('redirects a smooth scroll still running even to where the container is now', () => {
+      const { el, scrollParent, scrollTo } = renderCutOffEl()
+      const { result } = renderHook(() => useScrollIntoView())
+
+      act(() =>
+        result.current.scrollIntoView(el, 'start', { behavior: 'smooth' })
+      )
+      // Partway to the top of `el`, already where `nearest` would put it.
+      scrollParent.scrollTop = 150
+      act(() =>
+        result.current.scrollIntoView(el, 'nearest', { behavior: 'smooth' })
+      )
+
+      expect(scrollTo).toHaveBeenLastCalledWith({
+        top: 150,
+        behavior: 'smooth',
+      })
+    })
+
     it('ignores a scrollend that comes before it lands', () => {
       const { el, scrollParent } = renderCutOffEl()
       vi.spyOn(scrollParent, 'scrollHeight', 'get').mockReturnValue(1000)

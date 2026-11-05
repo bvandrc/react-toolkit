@@ -75,9 +75,10 @@ export interface ScrollIntoViewCallOptions {
  * (also run automatically on unmount).
  *
  * Each scroll goes as `scrollBehavior` asks, unless its call says otherwise.
- * Calling `scrollIntoView` again, on the same or a different element, cancels
- * anything still pending first. Cancelling an animated scroll stops it where
- * it is.
+ * Calling `scrollIntoView` again, on the same or a different element, takes
+ * over from anything still pending: a smooth scroll still running carries on
+ * toward the new target rather than stopping first. `cancel` stops an
+ * animated scroll where it is.
  */
 export const useScrollIntoView = ({
   scrollBehavior = 'instant',
@@ -99,7 +100,11 @@ export const useScrollIntoView = ({
       block: ScrollBlock,
       { behavior = scrollBehavior, onScrollEnd }: ScrollIntoViewCallOptions = {}
     ) => {
-      cancel()
+      // A smooth scroll still running is handed over rather than stopped:
+      // stopping it here would restart the animation on every call, and a
+      // caller that calls on every resize (`useScrollOnFocus`) would stutter.
+      const smoothScrollRunning = stopScrollRef.current !== null
+      restoreAnchorRef.current?.()
       const scrollParent = findScrollableAncestor(el)
       // CSS scroll anchoring reacting to a layout shift this scroll is
       // itself alongside (an expanding toolbar under `el`, say) is what
@@ -129,8 +134,8 @@ export const useScrollIntoView = ({
       const onScrollEndEvent = () => {
         const top = scrollParent.scrollTop
         const maxTop = scrollParent.scrollHeight - scrollParent.clientHeight
-        // The scroll this call interrupted can still end after this one has
-        // started, so only count an end at the target, or at the edge of the
+        // A scroll that ended just before this one started can still report
+        // it after, so only count an end at the target, or at the edge of the
         // scroll range where a target past it is clamped.
         if (
           Math.abs(top - target) <= SNAP_PX ||
@@ -153,7 +158,12 @@ export const useScrollIntoView = ({
       // suppressed but a transition still resizing something nearby, an
       // unnecessary write is its own opening for the browser's layout
       // machinery to move it anyway.
-      if (Math.abs(target - scrollParent.scrollTop) <= SNAP_PX) {
+      // A smooth scroll still running is headed somewhere else, so it needs
+      // the write even when the target is where the container is now.
+      if (
+        !smoothScrollRunning &&
+        Math.abs(target - scrollParent.scrollTop) <= SNAP_PX
+      ) {
         restoreTimer.start(restoreAnchor, ANCHOR_SUPPRESSION_MS)
         onScrollEnd?.()
       } else if (!smooth) {
@@ -176,7 +186,7 @@ export const useScrollIntoView = ({
         restoreTimer.start(finishSmoothScroll, SMOOTH_SCROLL_MAX_MS)
       }
     },
-    [cancel, restoreTimer, scrollBehavior]
+    [restoreTimer, scrollBehavior]
   )
 
   return { scrollIntoView, cancel }
