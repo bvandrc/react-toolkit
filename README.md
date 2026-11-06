@@ -39,7 +39,7 @@ Requires React 18 or 19. ESM only, with types included.
 | `useScrollIntoView` | `scrollIntoView` within an element's own scroll container, held against scroll anchoring, and cancelable. Jumps by default; pass `smooth` to animate it, except for users who prefer reduced motion. `onScrollEnd` is called once it lands. |
 | `useScrollOnFocus` | Handlers that scroll a focused element into view and keep it there as it resizes. On touch devices, also restores the scroll position the on-screen keyboard leaves behind when it closes. Jumps by default; pass `smooth` to animate it. |
 | `useMakeRoomForPopover` | When a popover mounts too tall to fit above or below its trigger, scrolls the trigger's scroll area so it does. Jumps by default; pass `smooth` to animate it. |
-| `getTargetScrollTop` | The `scrollTop` that would bring an element into view within its scroll container. |
+| `getTargetScrollTop` | The `scrollTop` that would bring an element into view within its scroll container: at its top, centered, or as little as it takes. |
 | `findScrollableAncestor` | The nearest ancestor whose own overflow scrolls, or the document's scrolling element when none does. |
 | `getVisibleBounds` | The visible top and bottom of a scroll container in viewport coordinates, counting only the on-screen part when that's the document itself. |
 

@@ -128,6 +128,27 @@ describe('getTargetScrollTop', () => {
     expect(getTargetScrollTop(el, 'start', scrollParent)).toBe(50)
   })
 
+  it('centers the element with center, even when already fully visible', () => {
+    const { el, scrollParent } = createElInScrollParent({
+      top: 250,
+      height: 100,
+      scrollTop: 100,
+    })
+
+    // Its middle, 300 down, sits half the 200px visible height below 200.
+    expect(getTargetScrollTop(el, 'center', scrollParent)).toBe(200)
+  })
+
+  it('aligns the top with center when too tall to fit', () => {
+    // Centering would scroll its top out of view.
+    const { el, scrollParent } = createElInScrollParent({
+      top: 50,
+      height: VISIBLE_HEIGHT + 100,
+    })
+
+    expect(getTargetScrollTop(el, 'center', scrollParent)).toBe(50)
+  })
+
   it('leaves a fully visible element where it is with nearest', () => {
     const { el, scrollParent } = createElInScrollParent({
       top: 50,
