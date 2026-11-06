@@ -38,13 +38,17 @@ export const getVisibleBounds = (scrollParent: HTMLElement) => {
 }
 
 /** Where to put an element scrolled into view, named as `Element.scrollIntoView`'s `block` names them. */
-export type ScrollBlock = Extract<ScrollLogicalPosition, 'start' | 'nearest'>
+export type ScrollBlock = Extract<
+  ScrollLogicalPosition,
+  'start' | 'center' | 'nearest'
+>
 
 /**
  * The `scrollTop` that puts `el` where `block` asks, within `scrollParent` --
  * by default, its nearest scrollable ancestor.
  *
- * `start` aligns its top edge. `nearest` shows all of it with the least
+ * `start` aligns its top edge. `center` centers it, or aligns its top edge
+ * when it's too tall to fit. `nearest` shows all of it with the least
  * movement: unchanged when it's already fully visible, its bottom edge
  * aligned when it's cut off below, and its top edge aligned when it's cut off
  * above or too tall to fit.
@@ -57,6 +61,11 @@ export const getTargetScrollTop = (
   const rect = el.getBoundingClientRect()
   const visible = getVisibleBounds(scrollParent)
   const tooTall = rect.bottom - rect.top > visible.bottom - visible.top
+  if (block === 'center' && !tooTall) {
+    const offCenter =
+      (rect.top + rect.bottom) / 2 - (visible.top + visible.bottom) / 2
+    return scrollParent.scrollTop + offCenter
+  }
   if (block === 'start' || rect.top < visible.top || tooTall) {
     return scrollParent.scrollTop + (rect.top - visible.top)
   }
