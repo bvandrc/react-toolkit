@@ -8,7 +8,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useEasedScrollIntoView } from './useEasedScrollIntoView'
+import {
+  type ScrollIntoViewHookOptions,
+  useScrollIntoView,
+} from './useScrollIntoView'
 import { useTimer } from './useTimer'
 import { useVisualViewportListener } from './useVisualViewportListener'
 import {
@@ -26,19 +29,37 @@ const getOffsetInScrollParent = (el: HTMLElement) =>
   el.getBoundingClientRect().top -
   getVisibleBounds(findScrollableAncestor(el)).top
 
+export type ScrollOnFocusOptions = Pick<
+  ScrollIntoViewHookOptions,
+  'scrollBehavior'
+>
+
 /** Focus and blur handlers to spread onto the element to keep where `block` puts it. */
-export const useScrollOnFocus = (block: ScrollBlock) => {
+export const useScrollOnFocus = (
+  block: ScrollBlock,
+  { scrollBehavior }: ScrollOnFocusOptions = {}
+) => {
   const [focusedEl, setFocusedEl] = useState<HTMLElement | null>(null)
   // Where the element sat after this hook last scrolled it, which is where
   // the keyboard-dismissal recovery puts it back.
   const settledOffsetRef = useRef(0)
+  // Whether the last scroll has landed, which a smooth one does only once it
+  // ends.
+  const landedRef = useRef(true)
   const resyncTimer = useTimer()
-  const { scrollIntoView, cancel } = useEasedScrollIntoView()
+  const { scrollIntoView, cancel } = useScrollIntoView({ scrollBehavior })
 
   const keepInView = useCallback(
     (el: HTMLElement) => {
-      scrollIntoView(el, block)
-      settledOffsetRef.current = getOffsetInScrollParent(el)
+      landedRef.current = false
+      scrollIntoView(el, block, {
+        // Only once it lands: a smooth scroll is still on its way when this
+        // call returns.
+        onScrollEnd: () => {
+          landedRef.current = true
+          settledOffsetRef.current = getOffsetInScrollParent(el)
+        },
+      })
     },
     [scrollIntoView, block]
   )
@@ -76,6 +97,12 @@ export const useScrollOnFocus = (block: ScrollBlock) => {
     onBlur: (event: React.FocusEvent<HTMLElement>) => {
       setFocusedEl(null)
       cancel()
+      // A smooth scroll the blur cut short settles where it stopped, so the
+      // recovery below doesn't move the field back to where it started.
+      if (!landedRef.current) {
+        landedRef.current = true
+        settledOffsetRef.current = getOffsetInScrollParent(event.currentTarget)
+      }
       // The rest is recovering from the on-screen keyboard specifically,
       // which comes with a touch screen whatever its width.
       if (!isTouchDevice()) return
