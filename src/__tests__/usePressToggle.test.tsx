@@ -6,7 +6,11 @@ import {
   screen,
 } from '@testing-library/react'
 
-import { usePressToggle } from '../usePressToggle'
+import {
+  type PressPointerType,
+  type UsePressToggleOptions,
+  usePressToggle,
+} from '../usePressToggle'
 
 const TEXT = {
   TRIGGER: 'Trigger',
@@ -48,11 +52,13 @@ describe('usePressToggle', () => {
    */
   const renderToggle = ({
     trigger = 'button',
+    options,
   }: {
     trigger?: keyof typeof TRIGGERS
+    options?: UsePressToggleOptions
   } = {}) => {
     const Toggle = () => {
-      const { isActive, setIsActive, triggerProps } = usePressToggle()
+      const { isActive, setIsActive, triggerProps } = usePressToggle(options)
       return (
         <>
           {TRIGGERS[trigger](triggerProps)}
@@ -240,5 +246,79 @@ describe('usePressToggle', () => {
 
     expect(result.current.setIsActive).toBe(setIsActive)
     expect(result.current.triggerProps).toBe(triggerProps)
+  })
+
+  describe('with pointerTypes', () => {
+    const OPTIONS = { pointerTypes: ['touch'] } satisfies UsePressToggleOptions
+
+    /** Presses and clicks `trigger` with a `pointerType` pointer, returning whether its click went on to what's around it. */
+    const pressTriggerWith = (
+      trigger: Element,
+      pointerType: PressPointerType
+    ) => {
+      fireEvent.pointerDown(trigger, {
+        pointerType,
+        isPrimary: true,
+        button: 0,
+      })
+      return fireEvent.click(trigger, { detail: 1 })
+    }
+
+    it("toggles on an allowed pointer's press, cancelling its click", () => {
+      // So a link the trigger sits in isn't followed too.
+      const { trigger } = renderToggle({ options: OPTIONS })
+
+      for (const expected of [TEXT.ACTIVE, TEXT.INACTIVE]) {
+        expect(pressTriggerWith(trigger, 'touch'), 'click went on').toBe(false)
+        expect(getState(), `after a tap, expected ${expected}`).toBe(expected)
+      }
+    })
+
+    it("leaves another pointer's press to what the trigger sits in", () => {
+      const { trigger } = renderToggle({ options: OPTIONS })
+
+      expect(pressTriggerWith(trigger, 'mouse'), 'click went on').toBe(true)
+      expect(getState()).toBe(TEXT.INACTIVE)
+    })
+
+    it("leaves a keyboard's or screen reader's activation to what the trigger sits in", () => {
+      const { trigger } = renderToggle({ trigger: 'span', options: OPTIONS })
+
+      expect(fireEvent.click(trigger, { detail: 0 }), 'click went on').toBe(
+        true
+      )
+      expect(
+        fireEvent.keyDown(trigger, { key: 'Enter' }),
+        'Enter went on'
+      ).toBe(true)
+      expect(getState()).toBe(TEXT.INACTIVE)
+    })
+
+    it('turns off on a tap what a tap turned on, though something else turns it off at pointerdown', () => {
+      // As a tooltip closes itself on any pointerdown, before the click.
+      const { trigger, setActivePassively } = renderToggle({ options: OPTIONS })
+      pressTriggerWith(trigger, 'touch')
+
+      fireEvent.pointerDown(trigger, {
+        pointerType: 'touch',
+        isPrimary: true,
+        button: 0,
+      })
+      setActivePassively(false)
+      fireEvent.click(trigger, { detail: 1 })
+
+      expect(getState()).toBe(TEXT.INACTIVE)
+    })
+
+    it('keeps triggerProps across renders given a new array each time', () => {
+      const { result, rerender } = renderHook(() =>
+        usePressToggle({ pointerTypes: ['touch'] })
+      )
+      const { triggerProps } = result.current
+
+      rerender()
+
+      expect(result.current.triggerProps).toBe(triggerProps)
+    })
   })
 })
