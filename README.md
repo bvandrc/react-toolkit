@@ -57,7 +57,7 @@ Requires React 18 or 19. ESM only, with types included.
 | Export | What it does |
 | --- | --- |
 | `usePressHold` | Detects a press held in place, for a long-press action. Cancels on movement, lift, the OS taking the touch over, or unmount. |
-| `usePressToggle` | Active state for something hover or focus can also open, like a tooltip, that a tap, click, Enter, Space, or a screen reader's activation toggles. One that hover or focus opened stays open on the first activation. Pass `pointerTypes`, like `['touch']`, for a trigger inside a link or control: only those pointers' presses toggle, and their clicks are cancelled, leaving every other click and key to what's around it. |
+| `usePressToggle` | Active state for something hover or focus can also open, like a tooltip, that a tap, click, Enter, Space, or a screen reader's activation toggles. One that hover or focus opened stays open on the first click or key, and a tap, which can't have hovered, turns it off. Pass `pointerTypes`, like `['touch']`, for a trigger inside a link or control: only those pointers' presses toggle, and their clicks are cancelled, leaving every other click and key to what's around it. `cancelClick` sets whether toggled clicks are cancelled either way. |
 
 ### Input
 

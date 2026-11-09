@@ -48,7 +48,8 @@ describe('usePressToggle', () => {
 
   /**
    * Renders a trigger carrying the handlers beside its active state, with
-   * buttons that turn it on and off the way hover or focus would.
+   * buttons that turn it on and off the way hover or focus would, and a way to
+   * render it again with other options.
    */
   const renderToggle = ({
     trigger = 'button',
@@ -57,8 +58,13 @@ describe('usePressToggle', () => {
     trigger?: keyof typeof TRIGGERS
     options?: UsePressToggleOptions
   } = {}) => {
-    const Toggle = () => {
-      const { isActive, setIsActive, triggerProps } = usePressToggle(options)
+    const Toggle = ({
+      toggleOptions,
+    }: {
+      toggleOptions?: UsePressToggleOptions
+    }) => {
+      const { isActive, setIsActive, triggerProps } =
+        usePressToggle(toggleOptions)
       return (
         <>
           {TRIGGERS[trigger](triggerProps)}
@@ -72,8 +78,10 @@ describe('usePressToggle', () => {
         </>
       )
     }
-    render(<Toggle />)
+    const { rerender } = render(<Toggle toggleOptions={options} />)
     return {
+      rerenderWith: (next: UsePressToggleOptions | undefined) =>
+        rerender(<Toggle toggleOptions={next} />),
       trigger:
         screen.queryByLabelText(TEXT.TRIGGER) ?? screen.getByText(TEXT.TRIGGER),
       setActivePassively: (next: boolean) =>
@@ -87,6 +95,19 @@ describe('usePressToggle', () => {
   const pressTrigger = (trigger: Element) => {
     fireEvent.pointerDown(trigger)
     fireEvent.click(trigger, { detail: 1 })
+  }
+
+  /** Presses `trigger` with the main button of a `pointerType` pointer, without lifting it. */
+  const pressDownWith = (trigger: Element, pointerType: PressPointerType) =>
+    fireEvent.pointerDown(trigger, { pointerType, isPrimary: true, button: 0 })
+
+  /** Presses and clicks `trigger` with a `pointerType` pointer, returning whether its click went on to what's around it. */
+  const pressTriggerWith = (
+    trigger: Element,
+    pointerType: PressPointerType
+  ) => {
+    pressDownWith(trigger, pointerType)
+    return fireEvent.click(trigger, { detail: 1 })
   }
 
   const getState = () =>
@@ -112,6 +133,22 @@ describe('usePressToggle', () => {
 
     pressTrigger(trigger)
     expect(getState()).toBe(TEXT.INACTIVE)
+  })
+
+  it('turns off on a tap what something else activated, which a finger cannot have hovered to', () => {
+    const { trigger, setActivePassively } = renderToggle()
+    setActivePassively(true)
+
+    pressTriggerWith(trigger, 'touch')
+
+    expect(getState()).toBe(TEXT.INACTIVE)
+  })
+
+  it('cancels the clicks it toggles on with cancelClick', () => {
+    const { trigger } = renderToggle({ options: { cancelClick: true } })
+
+    expect(pressTriggerWith(trigger, 'mouse'), 'click went on').toBe(false)
+    expect(getState()).toBe(TEXT.ACTIVE)
   })
 
   it('forgets a press-activation once something else turns it off', () => {
@@ -251,19 +288,6 @@ describe('usePressToggle', () => {
   describe('with pointerTypes', () => {
     const OPTIONS = { pointerTypes: ['touch'] } satisfies UsePressToggleOptions
 
-    /** Presses and clicks `trigger` with a `pointerType` pointer, returning whether its click went on to what's around it. */
-    const pressTriggerWith = (
-      trigger: Element,
-      pointerType: PressPointerType
-    ) => {
-      fireEvent.pointerDown(trigger, {
-        pointerType,
-        isPrimary: true,
-        button: 0,
-      })
-      return fireEvent.click(trigger, { detail: 1 })
-    }
-
     it("toggles on an allowed pointer's press, cancelling its click", () => {
       // So a link the trigger sits in isn't followed too.
       const { trigger } = renderToggle({ options: OPTIONS })
@@ -299,14 +323,47 @@ describe('usePressToggle', () => {
       const { trigger, setActivePassively } = renderToggle({ options: OPTIONS })
       pressTriggerWith(trigger, 'touch')
 
-      fireEvent.pointerDown(trigger, {
-        pointerType: 'touch',
-        isPrimary: true,
-        button: 0,
-      })
+      pressDownWith(trigger, 'touch')
       setActivePassively(false)
       fireEvent.click(trigger, { detail: 1 })
 
+      expect(getState()).toBe(TEXT.INACTIVE)
+    })
+
+    it('leaves a click alone once another pointer presses after an allowed one', () => {
+      // A finger pressed and slid off without a click, then a mouse clicks.
+      const { trigger } = renderToggle({ options: OPTIONS })
+      pressDownWith(trigger, 'touch')
+
+      expect(pressTriggerWith(trigger, 'mouse'), 'click went on').toBe(true)
+      expect(getState()).toBe(TEXT.INACTIVE)
+    })
+
+    it("reads a click with no pointerdown before it by the click's own pointer", () => {
+      const { trigger } = renderToggle({ options: OPTIONS })
+      const TAP = createEvent.click(trigger, { detail: 1 })
+      // The test DOM's click is a MouseEvent, where a browser's is a
+      // PointerEvent naming its pointer.
+      Object.defineProperty(TAP, 'pointerType', { value: 'touch' })
+
+      expect(fireEvent(trigger, TAP), 'click went on').toBe(false)
+      expect(getState()).toBe(TEXT.ACTIVE)
+    })
+
+    it('lets a toggled click go on to what is around the trigger with cancelClick off', () => {
+      const { trigger } = renderToggle({
+        options: { ...OPTIONS, cancelClick: false },
+      })
+
+      expect(pressTriggerWith(trigger, 'touch'), 'click went on').toBe(true)
+      expect(getState()).toBe(TEXT.ACTIVE)
+    })
+
+    it('follows pointerTypes as they change', () => {
+      const { trigger, rerenderWith } = renderToggle()
+      rerenderWith(OPTIONS)
+
+      expect(pressTriggerWith(trigger, 'mouse'), 'click went on').toBe(true)
       expect(getState()).toBe(TEXT.INACTIVE)
     })
 
