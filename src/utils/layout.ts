@@ -90,3 +90,50 @@ export const getRoomAround = (el: Element) => {
   const visibleBottom = visibleTop + (viewport?.height ?? window.innerHeight)
   return { above: top - visibleTop, below: visibleBottom - bottom }
 }
+
+/**
+ * The longest to wait for a focus scroll to say it ended, for one that never
+ * does: no scroll came, or the browser lacks `scrollend`. Past any browser's
+ * own smooth scroll, which runs a few hundred ms.
+ */
+const FOCUS_SCROLL_MAX_MS = 1000
+
+/**
+ * Calls `callback` once the scroll that focusing `element` brings has
+ * finished, and returns a function that calls it off.
+ *
+ * The browser scrolls a focused element into view, in its scroll container and
+ * the page, over many frames where `scroll-behavior` is smooth. One already in
+ * view waits a frame, for the scroll event of any instant scroll that brought
+ * it there; one out of view waits for `scrollend`, or a second at most.
+ */
+export const afterFocusScroll = (
+  element: HTMLElement,
+  callback: () => void
+) => {
+  const { top, right, bottom, left } = element.getBoundingClientRect()
+  // In view of its scroll container, and of the window that container sits in.
+  const container = getVisibleBounds(findScrollableAncestor(element))
+  const inView =
+    top >= Math.max(container.top, 0) &&
+    bottom <= Math.min(container.bottom, window.innerHeight) &&
+    left >= 0 &&
+    right <= window.innerWidth
+  if (inView) {
+    const frame = requestAnimationFrame(callback)
+    return () => cancelAnimationFrame(frame)
+  }
+  const finish = () => {
+    cancel()
+    callback()
+  }
+  const timeout = setTimeout(finish, FOCUS_SCROLL_MAX_MS)
+  // Captured, since a scroll container's `scrollend` doesn't bubble up to the
+  // window the way the page's own does.
+  window.addEventListener('scrollend', finish, { capture: true })
+  const cancel = () => {
+    clearTimeout(timeout)
+    window.removeEventListener('scrollend', finish, { capture: true })
+  }
+  return cancel
+}
