@@ -42,6 +42,7 @@ Requires React 18 or 19. ESM only, with types included.
 | `getTargetScrollTop` | The `scrollTop` that would bring an element into view within its scroll container: at its top, centered, or as little as it takes. |
 | `findScrollableAncestor` | The nearest ancestor whose own overflow scrolls, or the document's scrolling element when none does. |
 | `getVisibleBounds` | The visible top and bottom of a scroll container in viewport coordinates, counting only the on-screen part when that's the document itself. |
+| `afterFocusScroll` | Calls back once the scroll that focusing an element brings has finished: on `scrollend` for one out of view, or a frame on for one already in view. Works outside React. |
 
 ### Focus
 
@@ -50,6 +51,7 @@ Requires React 18 or 19. ESM only, with types included.
 | `useFocusHandoff` | Hands focus to a target when the focused element inside a container unmounts, so focus doesn't fall to `<body>`. |
 | `useFocusReturn` | Remembers what had focus when a dialog opened, and returns focus to it on close. Plugs straight into a Radix dialog's `onCloseAutoFocus`. |
 | `useTouchKeepsFocus` | Props for a menu or popover's trigger and content that leave focus in a text field when it's opened by touch, so the on-screen keyboard stays open through the open and each tap on an item. Plugs straight into a Radix menu or popover's `onOpenAutoFocus`. |
+| `useFocusVisibleOpen` | Open state for something focus opens, like a tooltip, with focus and blur handlers to spread onto its trigger. Only focus the browser would ring opens it, keyboard focus say, the same as Radix's own triggers, and only once the scroll that focus brings has finished, since Radix closes a tooltip whose trigger scrolls. |
 | `blurFocusedTextInput` | Blurs the focused text `input`, `textarea`, or `contenteditable`, closing the on-screen keyboard, and returns whether there was one to blur. |
 
 ### Press and Toggle
