@@ -3,6 +3,7 @@
 
 export * from './constants/tailwind'
 export * from './device-id'
+export * from './lazy-load'
 export * from './required-context'
 export * from './useAppVisibility'
 export * from './useDebouncedPersist'
