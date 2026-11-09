@@ -1,6 +1,6 @@
 {
   "name": "@bvandrc/react-toolkit",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Generic React hooks and helpers for UI behavior, such as press-and-hold, scrolling into view, the visual viewport and on-screen keyboard, focus handoff and return, and more.",
   "keywords": [
     "react",
@@ -30,6 +30,10 @@
     "./active-tab": {
       "types": "./dist/active-tab.d.mts",
       "default": "./dist/active-tab.mjs"
+    },
+    "./zoom-pan": {
+      "types": "./dist/zoom-pan.d.mts",
+      "default": "./dist/zoom-pan.mjs"
     },
     "./test-support": {
       "types": "./dist/test-support/index.d.mts",
@@ -65,12 +69,16 @@
   },
   "peerDependencies": {
     "@testing-library/react": "^16",
+    "@use-gesture/react": "^10",
     "react": "^18 || ^19",
     "tab-election": "^4",
     "vitest": ">=3"
   },
   "peerDependenciesMeta": {
     "@testing-library/react": {
+      "optional": true
+    },
+    "@use-gesture/react": {
       "optional": true
     },
     "tab-election": {
@@ -87,6 +95,7 @@
     "@testing-library/user-event": "^14",
     "@types/node": "^24",
     "@types/react": "^18",
+    "@use-gesture/react": "^10",
     "@vitejs/plugin-react": "^6",
     "happy-dom": "^21",
     "react": "^18",
