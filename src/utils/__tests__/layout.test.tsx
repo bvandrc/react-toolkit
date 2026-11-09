@@ -221,15 +221,40 @@ describe('getRoomAround', () => {
 })
 
 describe('afterFocusScroll', () => {
-  /** Creates an element laid out at `top`, 20px tall, in a 768px-tall viewport. */
-  const createElementAt = (top: number) => {
+  const VIEWPORT_HEIGHT = 768
+
+  beforeEach(() => {
+    vi.stubGlobal('innerHeight', VIEWPORT_HEIGHT)
+  })
+
+  /** Creates an element laid out at `top`, 20px tall, inside `parent`. */
+  const createElementAt = (
+    top: number,
+    parent: HTMLElement = document.body
+  ) => {
     const element = document.createElement('a')
+    parent.append(element)
     vi.spyOn(element, 'getBoundingClientRect').mockReturnValue(
       DOMRect.fromRect({ x: 0, y: top, width: 100, height: 20 })
     )
-    vi.stubGlobal('innerHeight', 768)
     return element
   }
+
+  /** Creates a scroll container 100px tall, 200px down the viewport. */
+  const createScrollContainer = () => {
+    const container = document.createElement('div')
+    container.style.overflowY = 'auto'
+    document.body.append(container)
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ x: 0, y: 200, width: 100, height: 100 })
+    )
+    vi.spyOn(container, 'clientHeight', 'get').mockReturnValue(100)
+    return container
+  }
+
+  /** Ends the page's scroll, which bubbles up to the window, as a browser's does. */
+  const endPageScroll = () =>
+    document.dispatchEvent(new Event('scrollend', { bubbles: true }))
 
   /** Resolves after the next animation frame's callbacks have run. */
   const waitForFrame = () =>
@@ -250,8 +275,48 @@ describe('afterFocusScroll', () => {
 
     await waitForFrame()
     expect(callback).not.toHaveBeenCalled()
-    window.dispatchEvent(new Event('scrollend'))
-    window.dispatchEvent(new Event('scrollend'))
+    endPageScroll()
+    endPageScroll()
     expect(callback).toHaveBeenCalledOnce()
+  })
+
+  it('waits on a scroll container for an element its overflow hides, though the window shows it', async () => {
+    const container = createScrollContainer()
+    // Scrolled above the container's visible part, and below it.
+    for (const top of [150, 320]) {
+      const callback = vi.fn()
+      afterFocusScroll(createElementAt(top, container), callback)
+
+      await waitForFrame()
+      expect(callback, `at ${top}px`).not.toHaveBeenCalled()
+      // A scroll container's `scrollend` doesn't bubble.
+      container.dispatchEvent(new Event('scrollend'))
+      expect(callback, `at ${top}px`).toHaveBeenCalledOnce()
+    }
+  })
+
+  it('calls back anyway a second on, for a scroll that never says it ended', () => {
+    vi.useFakeTimers()
+    const callback = vi.fn()
+    afterFocusScroll(createElementAt(2000), callback)
+
+    vi.advanceTimersByTime(999)
+    expect(callback).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(1)
+    expect(callback).toHaveBeenCalledOnce()
+    // Nothing left waiting, once it's called back.
+    endPageScroll()
+    expect(callback).toHaveBeenCalledOnce()
+  })
+
+  it('never calls back once called off', async () => {
+    vi.useFakeTimers()
+    const callback = vi.fn()
+    afterFocusScroll(createElementAt(100), callback)()
+    afterFocusScroll(createElementAt(2000), callback)()
+
+    await vi.advanceTimersByTimeAsync(1000)
+    endPageScroll()
+    expect(callback).not.toHaveBeenCalled()
   })
 })
