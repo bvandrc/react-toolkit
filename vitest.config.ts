@@ -9,8 +9,8 @@ export default defineConfig({
     // A spy declared once for a `describe` starts each case empty, so a
     // `toHaveBeenCalledWith` cannot pass on a call from the case before it.
     clearMocks: true,
-    // A `vi.spyOn` a case leaves in place would otherwise reach every case and
-    // file after it, so each starts with the originals back.
+    // A `vi.spyOn` a case leaves in place would otherwise reach every file
+    // after it, the same as a stubbed global below.
     restoreMocks: true,
     // A stubbed global or env var a case forgets to undo would otherwise reach
     // every file after it, since files share a worker's modules (`isolate`).

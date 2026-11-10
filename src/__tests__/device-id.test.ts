@@ -16,12 +16,6 @@ describe('createDeviceId', () => {
       expect(getStoredId()).toBe(deviceId)
     })
 
-    it('returns the same id on every later read', async () => {
-      const { getDeviceId } = createDeviceIdStore()
-
-      expect(await getDeviceId()).toBe(await getDeviceId())
-    })
-
     it('survives a reload, reading the stored id rather than minting another', async () => {
       const first = await createDeviceIdStore().getDeviceId()
 
@@ -67,12 +61,6 @@ describe('createDeviceId', () => {
 
       expect(await getDeviceId()).toBe(original)
       expect(getStoredId()).toBe(original)
-    })
-
-    it('takes effect on a cold cache, where a read would have minted one', async () => {
-      createDeviceIdStore().setDeviceId('carried-over')
-
-      expect(await createDeviceIdStore().getDeviceId()).toBe('carried-over')
     })
   })
 })

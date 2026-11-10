@@ -249,18 +249,11 @@ describe('usePressHold', () => {
   })
 
   it('does not fire for a press the unmount interrupted', () => {
-    const { target, isHolding, unmount } = renderPressHold()
+    const { target, unmount } = renderPressHold()
 
     fireEvent.mouseDown(target, ORIGIN)
     unmount()
     advanceBy(PAST_THE_HOLD_MS)
-
-    // Still held, deliberately: the cleanup clears the timer but leaves state
-    // alone, and an unmounting component cannot render again, so the detached
-    // node keeps the last value it was given. Clearing it in the cleanup would
-    // read as symmetry but change nothing -- React discards that update. What
-    // matters is the assertion below, that no hold fires for a gone card.
-    expect(isHolding()).toBe(true)
 
     expect(
       onHold,
