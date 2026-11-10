@@ -6,10 +6,6 @@ import {
   useMakeRoomForPopover,
 } from '../useMakeRoomForPopover'
 
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
 /** How tall the window is, so the room below the trigger is this less its bottom. */
 const WINDOW_HEIGHT = 600
 

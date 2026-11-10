@@ -1,16 +1,17 @@
 import { act, fireEvent, render } from '@testing-library/react'
 
 import {
+  mockScrollLayout,
+  type ScrollLayout,
+  VISIBLE_HEIGHT,
+} from '@/__tests__/support/mock-scroll-layout'
+import {
   mockResizeObserver,
   mockTouchDevice,
   mockVisualViewport,
 } from '@/test-support'
 import type { ScrollIntoViewBehavior } from '@/useScrollIntoView'
 import { useScrollOnFocus } from '../useScrollOnFocus'
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
 
 const Field = ({
   scrollBehavior,
@@ -23,22 +24,13 @@ const Field = ({
   return <div data-testid="field" {...handlers} />
 }
 
-/** How much of the scroll container shows at once. */
-const VISIBLE_HEIGHT = 200
-
 /**
- * Renders the field inside a scrollable ancestor, with layout stubbed so the
- * field sits `layout.top` below that ancestor's content top and is
- * `layout.height` tall, with `layout.visibleHeight` of the ancestor showing -- happy-dom does no real layout, so the hook has
- * nothing to measure without this. `layout` is read live, so a case can
- * resize the field by changing it.
+ * Renders the field inside a scrollable ancestor, laid out as `layout` says --
+ * happy-dom does no real layout, so the hook has nothing to measure without
+ * it. `layout` is read live, so a case can resize the field by changing it.
  */
 const renderFieldInScrollParent = (
-  layout: {
-    top: number
-    height: number
-    visibleHeight?: number
-  },
+  layout: ScrollLayout,
   scrollBehavior?: ScrollIntoViewBehavior
 ) => {
   const { getByTestId } = render(
@@ -47,16 +39,7 @@ const renderFieldInScrollParent = (
     </div>
   )
   const scrollParent = getByTestId('scroll-parent')
-  vi.spyOn(scrollParent, 'clientHeight', 'get').mockImplementation(
-    () => layout.visibleHeight ?? VISIBLE_HEIGHT
-  )
-  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
-    function (this: Element) {
-      if (this === scrollParent) return { top: 0 } as DOMRect
-      const top = layout.top - scrollParent.scrollTop
-      return { top, bottom: top + layout.height } as DOMRect
-    }
-  )
+  mockScrollLayout(scrollParent, layout)
   return { field: getByTestId('field'), scrollParent }
 }
 

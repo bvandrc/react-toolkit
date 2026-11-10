@@ -4,11 +4,6 @@ import { act, renderHook } from '@testing-library/react'
 import { mockVisualViewport } from '@/test-support'
 import { useVisualViewportPin } from '../useVisualViewportPin'
 
-afterEach(() => {
-  vi.restoreAllMocks()
-  vi.unstubAllGlobals()
-})
-
 beforeEach(() => {
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {
     // happy-dom does not implement native scrolling.

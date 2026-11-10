@@ -13,7 +13,6 @@ const fromNow = (ms: number) => new Date(NOW.getTime() + ms)
 
 describe('useHasPassed', () => {
   beforeEach(() => vi.useFakeTimers({ now: NOW }))
-  afterEach(() => vi.useRealTimers())
 
   /** Renders the hook over `date`, and returns a call that re-renders it over another. */
   const renderHasPassed = (date: Date | null | undefined) => {

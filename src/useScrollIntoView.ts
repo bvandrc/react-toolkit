@@ -6,13 +6,15 @@
  * still trigger it.
  */
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useRef } from 'react'
+import { useUnmount } from 'usehooks-ts'
 
 import { useTimer } from './useTimer'
 import {
   findScrollableAncestor,
   getTargetScrollTop,
   type ScrollBlock,
+  SMOOTH_SCROLL_MAX_MS,
 } from './utils'
 
 /**
@@ -28,13 +30,6 @@ const ANCHOR_SUPPRESSION_MS = 300
 
 /** Above a single device pixel, so a sub-pixel gap doesn't trigger a write that rounds away to nothing. */
 const SNAP_PX = 1
-
-/**
- * The longest an animated scroll keeps anchoring off, for a browser that never
- * says it finished -- one without `scrollend`. Past any browser's own smooth
- * scroll, which runs a few hundred ms.
- */
-const SMOOTH_SCROLL_MAX_MS = 1000
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
@@ -92,7 +87,7 @@ export const useScrollIntoView = ({
     restoreAnchorRef.current?.()
   }, [])
 
-  useEffect(() => cancel, [cancel])
+  useUnmount(cancel)
 
   const scrollIntoView = useCallback(
     (
@@ -183,6 +178,8 @@ export const useScrollIntoView = ({
             top: scrollParent.scrollTop,
             behavior: 'instant',
           })
+        // Finished anyway in a browser that never says so, one without
+        // `scrollend`.
         restoreTimer.start(finishSmoothScroll, SMOOTH_SCROLL_MAX_MS)
       }
     },

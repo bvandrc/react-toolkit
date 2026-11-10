@@ -3,10 +3,6 @@ import { act, render, renderHook } from '@testing-library/react'
 // biome-ignore lint/suspicious/noDeprecatedImports: covers the deprecated hook until it's removed.
 import { useEasedScrollIntoView } from '../useEasedScrollIntoView'
 
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
 describe('useEasedScrollIntoView', () => {
   it('scrolls smoothly', () => {
     const { getByTestId } = render(

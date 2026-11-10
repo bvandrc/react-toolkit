@@ -106,10 +106,6 @@ describe('getTargetScrollTop', () => {
     return { el, scrollParent }
   }
 
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
   it('measures against the nearest scrollable ancestor when given none', () => {
     const { el } = createElInScrollParent({
       top: 150,
@@ -201,10 +197,6 @@ describe('getRoomAround', () => {
     } as DOMRect)
     return el
   }
-
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
 
   it('measures against the window without a visual viewport', () => {
     vi.stubGlobal('visualViewport', undefined)

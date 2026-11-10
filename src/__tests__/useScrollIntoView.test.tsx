@@ -1,44 +1,25 @@
 import { act, render, renderHook } from '@testing-library/react'
 
+import {
+  mockScrollLayout,
+  type ScrollLayout,
+} from '@/__tests__/support/mock-scroll-layout'
 import { mockMatchMedia } from '@/test-support'
 import { useScrollIntoView } from '../useScrollIntoView'
 
-afterEach(() => {
-  vi.restoreAllMocks()
-  vi.unstubAllGlobals()
-  vi.useRealTimers()
-})
-
-/** How much of the scroll container shows at once. */
-const VISIBLE_HEIGHT = 200
-
 /**
- * Renders a scrollable ancestor with one child inside it, with layout stubbed
- * so the child sits `top` below the ancestor's content top and is `height`
- * tall -- happy-dom does no real layout, so the hook would have nothing to
- * scroll to without this.
+ * Renders a scrollable ancestor with one child inside it, laid out as `layout`
+ * says -- happy-dom does no real layout, so the hook would have nothing to
+ * scroll to without it.
  */
-const renderElInScrollParent = ({
-  top,
-  height,
-}: {
-  top: number
-  height: number
-}) => {
+const renderElInScrollParent = (layout: ScrollLayout) => {
   const { getByTestId } = render(
     <div data-testid="scroll-parent" style={{ overflowY: 'auto' }}>
       <div data-testid="el" />
     </div>
   )
   const scrollParent = getByTestId('scroll-parent')
-  vi.spyOn(scrollParent, 'clientHeight', 'get').mockReturnValue(VISIBLE_HEIGHT)
-  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
-    function (this: Element) {
-      if (this === scrollParent) return { top: 0 } as DOMRect
-      const elTop = top - scrollParent.scrollTop
-      return { top: elTop, bottom: elTop + height } as DOMRect
-    }
-  )
+  mockScrollLayout(scrollParent, layout)
   return { el: getByTestId('el'), scrollParent }
 }
 

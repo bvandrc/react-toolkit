@@ -30,11 +30,14 @@ export const createDeviceId = ({
 }) => {
   let cachedDeviceId: string | undefined
 
+  const storeId = (deviceId: string) =>
+    localStorage.setItem(storageKey, JSON.stringify(deviceId))
+
   const readOrMintDeviceId = (): string => {
     const stored = readStoredId(storageKey)
     if (stored) return stored
     const minted = crypto.randomUUID()
-    localStorage.setItem(storageKey, JSON.stringify(minted))
+    storeId(minted)
     return minted
   }
 
@@ -72,7 +75,7 @@ export const createDeviceId = ({
       // Set rather than read after the clear: a read falls through to an empty
       // store and mints a new id whenever the cache is cold.
       cachedDeviceId = deviceId
-      localStorage.setItem(storageKey, JSON.stringify(deviceId))
+      storeId(deviceId)
     },
   }
 }

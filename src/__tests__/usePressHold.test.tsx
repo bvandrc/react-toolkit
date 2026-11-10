@@ -84,10 +84,6 @@ describe('usePressHold', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
   })
 
-  afterEach(() => {
-    vi.useRealTimers()
-  })
-
   it('fires once a press has been held for the duration', () => {
     const { target, isHolding } = renderPressHold()
 
