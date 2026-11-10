@@ -4,4 +4,5 @@
 export * from './device'
 export * from './input'
 export * from './layout'
+export * from './scroll-timing'
 export * from './share'

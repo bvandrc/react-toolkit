@@ -4,8 +4,8 @@
  */
 
 import { useCallback, useMemo, useRef } from 'react'
-import { useIsomorphicLayoutEffect } from 'usehooks-ts'
 
+import { useLatestRef } from './useLatestRef'
 import { useStateRef } from './useStateRef'
 import {
   clickOnActivationKey,
@@ -56,12 +56,8 @@ export const usePressToggle = ({
 }: UsePressToggleOptions = {}) => {
   const [isActive, setIsActiveState, isActiveRef] = useStateRef(false)
   // Read by the handlers, so they keep their identity while the options
-  // change. Set once committed, so a render React throws away never reaches
-  // them.
-  const optionsRef = useRef({ pointerTypes, cancelClick })
-  useIsomorphicLayoutEffect(() => {
-    optionsRef.current = { pointerTypes, cancelClick }
-  })
+  // change.
+  const optionsRef = useLatestRef({ pointerTypes, cancelClick })
   /**
    * Whether an activation made it active.
    *

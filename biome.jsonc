@@ -9,7 +9,10 @@
         "useExhaustiveDependencies": {
           "level": "error",
           "options": {
-            "hooks": [{ "name": "useStateRef", "stableResult": [1, 2] }]
+            "hooks": [
+              { "name": "useStateRef", "stableResult": [1, 2] },
+              { "name": "useLatestRef", "stableResult": true }
+            ]
           }
         }
       }

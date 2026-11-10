@@ -3,8 +3,9 @@
  * `usehooks-ts`'s `useEventListener` has no target for.
  */
 
-import { useEffect, useRef } from 'react'
-import { useIsomorphicLayoutEffect } from 'usehooks-ts'
+import { useEffect } from 'react'
+
+import { useLatestRef } from './useLatestRef'
 
 /**
  * Calls `handler` on each `eventName` the visual viewport fires, for as long as
@@ -21,11 +22,7 @@ export const useVisualViewportListener = <
   eventName: K,
   handler: (event: VisualViewportEventMap[K]) => void
 ) => {
-  const handlerRef = useRef(handler)
-
-  useIsomorphicLayoutEffect(() => {
-    handlerRef.current = handler
-  }, [handler])
+  const handlerRef = useLatestRef(handler)
 
   useEffect(() => {
     const viewport = window.visualViewport

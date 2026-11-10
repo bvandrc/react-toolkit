@@ -3,6 +3,8 @@
  * them puts them.
  */
 
+import { SMOOTH_SCROLL_MAX_MS } from './scroll-timing'
+
 /** An x and y pair, in px. */
 export interface Point {
   x: number
@@ -117,13 +119,6 @@ export const isInView = (el: HTMLElement) => {
 }
 
 /**
- * The longest to wait for a focus scroll to say it ended, for one that never
- * does: no scroll came, or the browser lacks `scrollend`. Past any browser's
- * own smooth scroll, which runs a few hundred ms.
- */
-const FOCUS_SCROLL_MAX_MS = 1000
-
-/**
  * Calls `callback` once the scroll that focusing `element` brings has
  * finished, and returns a function that calls it off.
  *
@@ -144,7 +139,7 @@ export const onFocusScrollEnd = (
     cancel()
     callback()
   }
-  const timeout = setTimeout(finish, FOCUS_SCROLL_MAX_MS)
+  const timeout = setTimeout(finish, SMOOTH_SCROLL_MAX_MS)
   // Captured, since a scroll container's `scrollend` doesn't bubble up to the
   // window the way the page's own does.
   window.addEventListener('scrollend', finish, { capture: true })

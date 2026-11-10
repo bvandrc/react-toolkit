@@ -3,7 +3,8 @@
  * browser would ring, and closes it on blur.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import { useUnmount } from 'usehooks-ts'
 
 import { onFocusScrollEnd } from './utils'
 
@@ -25,7 +26,7 @@ export const useFocusVisibleOpen = () => {
     cancelRef.current?.()
     setOpenState(next)
   }, [])
-  useEffect(() => () => cancelRef.current?.(), [])
+  useUnmount(() => cancelRef.current?.())
   const focusProps = useMemo(
     () => ({
       onFocus: (event: React.FocusEvent<HTMLElement>) => {

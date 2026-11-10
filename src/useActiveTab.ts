@@ -7,6 +7,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Tab } from 'tab-election'
 
+import { useLatestRef } from './useLatestRef'
+
 /**
  * Where this tab stands: still finding out, the one tab running the app, or
  * not running it because another tab is.
@@ -52,8 +54,7 @@ export const useActiveTab = (
   )
   const tabRef = useRef<Tab | null>(null)
   const isHandingOverRef = useRef(false)
-  const beforeHandOverRef = useRef(beforeHandOver)
-  beforeHandOverRef.current = beforeHandOver
+  const beforeHandOverRef = useLatestRef(beforeHandOver)
 
   useEffect(() => {
     if (!canCoordinate()) return

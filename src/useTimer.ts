@@ -3,7 +3,8 @@
  * you on unmount.
  */
 
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
+import { useUnmount } from 'usehooks-ts'
 
 /**
  * `start(fn, ms)` runs `fn` after `ms`, replacing any timeout still pending,
@@ -22,7 +23,7 @@ export const useTimer = () => {
     idRef.current = setTimeout(fn, ms)
   }, [])
 
-  useEffect(() => clear, [clear])
+  useUnmount(clear)
 
   return useMemo(() => ({ start, clear }), [start, clear])
 }
