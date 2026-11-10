@@ -2,12 +2,12 @@ import { render, screen } from '@testing-library/react'
 
 import { mockVisualViewport } from '@/test-support'
 import {
-  afterFocusScroll,
   findScrollableAncestor,
   getContentHeight,
   getRoomAround,
   getTargetScrollTop,
   isInView,
+  onFocusScrollEnd,
 } from '../layout'
 
 describe('findScrollableAncestor', () => {
@@ -299,7 +299,7 @@ describe('isInView', () => {
   })
 })
 
-describe('afterFocusScroll', () => {
+describe('onFocusScrollEnd', () => {
   beforeEach(() => {
     vi.stubGlobal('innerHeight', VIEWPORT_HEIGHT)
   })
@@ -314,7 +314,7 @@ describe('afterFocusScroll', () => {
 
   it('calls back a frame on for an element already in view', async () => {
     const callback = vi.fn()
-    afterFocusScroll(createElementAt(100), callback)
+    onFocusScrollEnd(createElementAt(100), callback)
 
     expect(callback).not.toHaveBeenCalled()
     await waitForFrame()
@@ -323,7 +323,7 @@ describe('afterFocusScroll', () => {
 
   it('calls back once the page has scrolled an element out of view to it', async () => {
     const callback = vi.fn()
-    afterFocusScroll(createElementAt(2000), callback)
+    onFocusScrollEnd(createElementAt(2000), callback)
 
     await waitForFrame()
     expect(callback).not.toHaveBeenCalled()
@@ -335,7 +335,7 @@ describe('afterFocusScroll', () => {
   it("calls back once a scroll container's own scroll ends, for an element its overflow hides", async () => {
     const container = createScrollContainer()
     const callback = vi.fn()
-    afterFocusScroll(createElementAt(320, container), callback)
+    onFocusScrollEnd(createElementAt(320, container), callback)
 
     await waitForFrame()
     expect(callback).not.toHaveBeenCalled()
@@ -347,7 +347,7 @@ describe('afterFocusScroll', () => {
   it('calls back anyway a second on, for a scroll that never says it ended', () => {
     vi.useFakeTimers()
     const callback = vi.fn()
-    afterFocusScroll(createElementAt(2000), callback)
+    onFocusScrollEnd(createElementAt(2000), callback)
 
     vi.advanceTimersByTime(999)
     expect(callback).not.toHaveBeenCalled()
@@ -361,8 +361,8 @@ describe('afterFocusScroll', () => {
   it('never calls back once called off', async () => {
     vi.useFakeTimers()
     const callback = vi.fn()
-    afterFocusScroll(createElementAt(100), callback)()
-    afterFocusScroll(createElementAt(2000), callback)()
+    onFocusScrollEnd(createElementAt(100), callback)()
+    onFocusScrollEnd(createElementAt(2000), callback)()
 
     await vi.advanceTimersByTimeAsync(1000)
     endPageScroll()

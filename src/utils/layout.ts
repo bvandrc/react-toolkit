@@ -132,7 +132,7 @@ const FOCUS_SCROLL_MAX_MS = 1000
  * view waits a frame, for the scroll event of any instant scroll that brought
  * it there; one out of view waits for `scrollend`, or a second at most.
  */
-export const afterFocusScroll = (
+export const onFocusScrollEnd = (
   element: HTMLElement,
   callback: () => void
 ) => {

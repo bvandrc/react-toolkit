@@ -45,7 +45,7 @@ Requires React 18 or 19. ESM only, with types included.
 | `findScrollableAncestor` | The nearest ancestor whose own overflow scrolls, or the document's scrolling element when none does. |
 | `getVisibleBounds` | The visible top and bottom of a scroll container in viewport coordinates, counting only the on-screen part when that's the document itself. |
 | `isInView` | Whether all of an element is on screen: inside the window, and inside the visible part of its scroll container. |
-| `afterFocusScroll` | Calls back once the scroll that focusing an element brings has finished, in its scroll container or the page: on `scrollend`, or a second on at most, for one out of view, or a frame on for one already in view. Returns a function that calls it off. Works outside React. |
+| `onFocusScrollEnd` | Calls back once the scroll that focusing an element brings has finished, in its scroll container or the page: on `scrollend`, or a second on at most, for one out of view, or a frame on for one already in view. Returns a function that calls it off. Works outside React. |
 
 ### Focus
 
