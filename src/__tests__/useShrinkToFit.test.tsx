@@ -35,7 +35,7 @@ type ShrinkingLineProps = {
 const ShrinkingLine = ({ stepCount = SIZES.length }: ShrinkingLineProps) => {
   const lineRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLSpanElement>(null)
-  const step = useShrinkToFit(lineRef, textRef, stepCount)
+  const step = useShrinkToFit({ lineRef, textRef, stepCount })
   return (
     <div
       ref={lineRef}

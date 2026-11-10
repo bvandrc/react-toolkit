@@ -102,6 +102,21 @@ export const getContentHeight = (el: HTMLElement) => {
 }
 
 /**
+ * Whether all of `el` is on screen: inside the window, and inside the visible
+ * part of its scroll container.
+ */
+export const isInView = (el: HTMLElement) => {
+  const { top, right, bottom, left } = el.getBoundingClientRect()
+  const container = getVisibleBounds(findScrollableAncestor(el))
+  return (
+    top >= Math.max(container.top, 0) &&
+    bottom <= Math.min(container.bottom, window.innerHeight) &&
+    left >= 0 &&
+    right <= window.innerWidth
+  )
+}
+
+/**
  * The longest to wait for a focus scroll to say it ended, for one that never
  * does: no scroll came, or the browser lacks `scrollend`. Past any browser's
  * own smooth scroll, which runs a few hundred ms.
@@ -121,15 +136,7 @@ export const afterFocusScroll = (
   element: HTMLElement,
   callback: () => void
 ) => {
-  const { top, right, bottom, left } = element.getBoundingClientRect()
-  // In view of its scroll container, and of the window that container sits in.
-  const container = getVisibleBounds(findScrollableAncestor(element))
-  const inView =
-    top >= Math.max(container.top, 0) &&
-    bottom <= Math.min(container.bottom, window.innerHeight) &&
-    left >= 0 &&
-    right <= window.innerWidth
-  if (inView) {
+  if (isInView(element)) {
     const frame = requestAnimationFrame(callback)
     return () => cancelAnimationFrame(frame)
   }

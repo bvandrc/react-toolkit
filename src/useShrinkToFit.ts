@@ -12,21 +12,27 @@ type Fit = { step: number; isSettled: boolean }
 
 const UNMEASURED: Fit = { step: 0, isSettled: false }
 
+export type ShrinkToFitOptions = {
+  /** The line that should stay on one line */
+  lineRef: React.RefObject<HTMLElement | null>
+  /** The text whose height one line is, which must not wrap itself (`white-space: nowrap`, or a flex item that doesn't shrink) */
+  textRef: React.RefObject<HTMLElement | null>
+  /** How many sizes the text has, largest first */
+  stepCount: number
+}
+
 /**
  * How many steps down from its largest size a line's text takes: the fewest
  * that keep the line on one line, or none where no step does.
  *
- * `lineRef` is the line, `textRef` the text whose height one line is, which
- * must not wrap itself (`white-space: nowrap`, or a flex item that doesn't
- * shrink), and `stepCount` how many sizes the text has, largest first. It
- * measures before the browser paints, so no size flashes, and again whenever
- * the line's width or `stepCount` changes, or a font loads.
+ * It measures before the browser paints, so no size flashes, and again
+ * whenever the line's width or `stepCount` changes, or a font loads.
  */
-export const useShrinkToFit = (
-  lineRef: React.RefObject<HTMLElement | null>,
-  textRef: React.RefObject<HTMLElement | null>,
-  stepCount: number
-) => {
+export const useShrinkToFit = ({
+  lineRef,
+  textRef,
+  stepCount,
+}: ShrinkToFitOptions) => {
   const [fit, setFit] = useState<Fit>(UNMEASURED)
   // A new set of sizes is measured again from the largest, before the render
   // with it commits, so the step never runs past the last size.

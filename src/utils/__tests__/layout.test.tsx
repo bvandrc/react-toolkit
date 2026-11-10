@@ -7,6 +7,7 @@ import {
   getContentHeight,
   getRoomAround,
   getTargetScrollTop,
+  isInView,
 } from '../layout'
 
 describe('findScrollableAncestor', () => {
@@ -243,37 +244,65 @@ describe('getContentHeight', () => {
   })
 })
 
-describe('afterFocusScroll', () => {
-  const VIEWPORT_HEIGHT = 768
+const VIEWPORT_HEIGHT = 768
 
+/** Creates an element laid out 20px tall at `top`, and `left` across, inside `parent`. */
+const createElementAt = (
+  top: number,
+  parent: HTMLElement = document.body,
+  left = 0
+) => {
+  const element = document.createElement('a')
+  parent.append(element)
+  vi.spyOn(element, 'getBoundingClientRect').mockReturnValue(
+    DOMRect.fromRect({ x: left, y: top, width: 100, height: 20 })
+  )
+  return element
+}
+
+/** Creates a scroll container 100px tall, 200px down the viewport. */
+const createScrollContainer = () => {
+  const container = document.createElement('div')
+  container.style.overflowY = 'auto'
+  document.body.append(container)
+  vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(
+    DOMRect.fromRect({ x: 0, y: 200, width: 100, height: 100 })
+  )
+  vi.spyOn(container, 'clientHeight', 'get').mockReturnValue(100)
+  return container
+}
+
+describe('isInView', () => {
   beforeEach(() => {
     vi.stubGlobal('innerHeight', VIEWPORT_HEIGHT)
   })
 
-  /** Creates an element laid out at `top`, 20px tall, inside `parent`. */
-  const createElementAt = (
-    top: number,
-    parent: HTMLElement = document.body
-  ) => {
-    const element = document.createElement('a')
-    parent.append(element)
-    vi.spyOn(element, 'getBoundingClientRect').mockReturnValue(
-      DOMRect.fromRect({ x: 0, y: top, width: 100, height: 20 })
-    )
-    return element
-  }
+  it('is true only for an element wholly inside the window and its scroll container', () => {
+    const container = createScrollContainer()
+    const CASES = [
+      ['in the window', createElementAt(100), true],
+      ['below the window', createElementAt(2000), false],
+      ['above the window', createElementAt(-10), false],
+      [
+        'off the window to the left',
+        createElementAt(100, document.body, -5),
+        false,
+      ],
+      ['in its container', createElementAt(250, container), true],
+      // In the window, but scrolled out of the container's visible part.
+      ['above its container', createElementAt(150, container), false],
+      ['below its container', createElementAt(320, container), false],
+    ] as const
+    for (const [where, element, expected] of CASES) {
+      expect(isInView(element), where).toBe(expected)
+    }
+  })
+})
 
-  /** Creates a scroll container 100px tall, 200px down the viewport. */
-  const createScrollContainer = () => {
-    const container = document.createElement('div')
-    container.style.overflowY = 'auto'
-    document.body.append(container)
-    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(
-      DOMRect.fromRect({ x: 0, y: 200, width: 100, height: 100 })
-    )
-    vi.spyOn(container, 'clientHeight', 'get').mockReturnValue(100)
-    return container
-  }
+describe('afterFocusScroll', () => {
+  beforeEach(() => {
+    vi.stubGlobal('innerHeight', VIEWPORT_HEIGHT)
+  })
 
   /** Ends the page's scroll, which bubbles up to the window, as a browser's does. */
   const endPageScroll = () =>
@@ -303,19 +332,16 @@ describe('afterFocusScroll', () => {
     expect(callback).toHaveBeenCalledOnce()
   })
 
-  it('waits on a scroll container for an element its overflow hides, though the window shows it', async () => {
+  it("calls back once a scroll container's own scroll ends, for an element its overflow hides", async () => {
     const container = createScrollContainer()
-    // Scrolled above the container's visible part, and below it.
-    for (const top of [150, 320]) {
-      const callback = vi.fn()
-      afterFocusScroll(createElementAt(top, container), callback)
+    const callback = vi.fn()
+    afterFocusScroll(createElementAt(320, container), callback)
 
-      await waitForFrame()
-      expect(callback, `at ${top}px`).not.toHaveBeenCalled()
-      // A scroll container's `scrollend` doesn't bubble.
-      container.dispatchEvent(new Event('scrollend'))
-      expect(callback, `at ${top}px`).toHaveBeenCalledOnce()
-    }
+    await waitForFrame()
+    expect(callback).not.toHaveBeenCalled()
+    // A scroll container's `scrollend` doesn't bubble.
+    container.dispatchEvent(new Event('scrollend'))
+    expect(callback).toHaveBeenCalledOnce()
   })
 
   it('calls back anyway a second on, for a scroll that never says it ended', () => {
