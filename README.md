@@ -20,9 +20,17 @@ Requires React 18 or 19. ESM only, with types included.
 | `detectDevice` | Whether the page is running on iOS, Android, or desktop, based on `navigator.userAgent`. |
 | `useVisualViewportPin` | Keeps a fixed, full-screen element, like a sheet, matched to `window.visualViewport`, so it stays on screen and scrollable while the on-screen keyboard is open or the page is pinch-zoomed. |
 | `useVisualViewportListener` | Calls a handler on each visual viewport `resize` or `scroll`, for as long as the component is mounted. |
-| `getRoomAround` | How much of the screen is free above and below an element, not counting what an open on-screen keyboard covers. |
 <!-- Not really that important / useful compared to how much it takes to explain -->
 <!-- | `getBelowBreakpointQuery` | The media query `useIsMobile` matches for a breakpoint, stopping 1px short so it never overlaps a `min-width` style at the same width. | -->
+
+### Layout
+
+| Export | What it does |
+| --- | --- |
+| `useShrinkToFit` | How many steps down through a set of text sizes, largest first, keep a line from wrapping: the fewest that do, or none where no step does. Measures before paint, and again when the line's width or the number of sizes changes, or a font loads. The text must not wrap itself. |
+| `getContentHeight` | How tall an element's content is, inside its padding and border. |
+| `isInView` | Whether all of an element is on screen: inside the window, and inside the visible part of its scroll container. |
+| `getRoomAround` | How much of the screen is free above and below an element, not counting what an open on-screen keyboard covers. |
 
 ### Page Lifecycle
 
@@ -42,7 +50,7 @@ Requires React 18 or 19. ESM only, with types included.
 | `getTargetScrollTop` | The `scrollTop` that would bring an element into view within its scroll container: at its top, centered, or as little as it takes. |
 | `findScrollableAncestor` | The nearest ancestor whose own overflow scrolls, or the document's scrolling element when none does. |
 | `getVisibleBounds` | The visible top and bottom of a scroll container in viewport coordinates, counting only the on-screen part when that's the document itself. |
-| `afterFocusScroll` | Calls back once the scroll that focusing an element brings has finished, in its scroll container or the page: on `scrollend`, or a second on at most, for one out of view, or a frame on for one already in view. Returns a function that calls it off. Works outside React. |
+| `onFocusScrollEnd` | Calls back once the scroll that focusing an element brings has finished, in its scroll container or the page: on `scrollend`, or a second on at most, for one out of view, or a frame on for one already in view. Returns a function that calls it off. Works outside React. |
 
 ### Focus
 
@@ -82,6 +90,7 @@ Requires React 18 or 19. ESM only, with types included.
 | `useTimer` | A timeout started from a handler rather than on render, replaced by the next `start` and cleared on unmount. |
 | `useHasPassed` | Whether a date has passed, re-rendering at the moment it does with one timer rather than polling. |
 | `useDebouncedPersist` | Persists a value to `localStorage`, debounced, and flushed when the app is hidden or closed so nothing is lost to the debounce window. |
+| `createLazyLoad` | Makes a hook for something loaded on demand, like code and data kept out of the first load, which every component using it shares: the value once loaded, whether loading failed and why, and a `prefetch` to start it, say as a pointer arrives. Loads once, however many components prefetch, and every mounted component sees the result at once. |
 
 ### Tabs
 
