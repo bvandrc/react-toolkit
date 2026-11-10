@@ -79,6 +79,10 @@
       "optional": true,
       "description": "For `./test-support`'s Vitest mocks, which render through it."
     },
+    "vitest": {
+      "optional": true,
+      "description": "For `./test-support`, whose mocks are Vitest's."
+    },
     "@use-gesture/react": {
       "optional": true,
       "description": "For `./gestures`, whose hooks are built on it."
@@ -86,10 +90,6 @@
     "tab-election": {
       "optional": true,
       "description": "For `./active-tab`, which runs its election."
-    },
-    "vitest": {
-      "optional": true,
-      "description": "For `./test-support`, whose mocks are Vitest's."
     }
   },
   "devDependencies": {
