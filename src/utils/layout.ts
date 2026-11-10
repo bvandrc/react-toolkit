@@ -91,6 +91,16 @@ export const getRoomAround = (el: Element) => {
   return { above: top - visibleTop, below: visibleBottom - bottom }
 }
 
+/** How tall `el`'s content is, inside its padding and border. */
+export const getContentHeight = (el: HTMLElement) => {
+  const { paddingTop, paddingBottom } = getComputedStyle(el)
+  // A DOM that doesn't lay out may leave it empty, which is no padding.
+  const padding =
+    (Number.parseFloat(paddingTop) || 0) +
+    (Number.parseFloat(paddingBottom) || 0)
+  return el.clientHeight - padding
+}
+
 /**
  * The longest to wait for a focus scroll to say it ended, for one that never
  * does: no scroll came, or the browser lacks `scrollend`. Past any browser's

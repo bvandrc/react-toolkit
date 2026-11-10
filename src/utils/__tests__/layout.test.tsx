@@ -4,6 +4,7 @@ import { mockVisualViewport } from '@/test-support'
 import {
   afterFocusScroll,
   findScrollableAncestor,
+  getContentHeight,
   getRoomAround,
   getTargetScrollTop,
 } from '../layout'
@@ -217,6 +218,28 @@ describe('getRoomAround', () => {
     mockVisualViewport({ offsetTop: 20, height: 300 })
 
     expect(getRoomAround(createEl())).toEqual({ above: 80, below: 180 })
+  })
+})
+
+describe('getContentHeight', () => {
+  it('measures inside the padding, and counts an empty one as none', () => {
+    const CASES = [
+      // Padded 4px above and 6px below a 48px content box.
+      ['4px', '6px', 48],
+      // Unset, as a DOM that doesn't lay out leaves it.
+      ['', '', 58],
+    ] as const
+    for (const [paddingTop, paddingBottom, expected] of CASES) {
+      const el = document.createElement('div')
+      Object.assign(el.style, { paddingTop, paddingBottom })
+      // Attached, since the test DOM computes no style for a detached one.
+      document.body.append(el)
+      vi.spyOn(el, 'clientHeight', 'get').mockReturnValue(58)
+
+      expect(getContentHeight(el), `padded ${paddingTop || 'none'}`).toBe(
+        expected
+      )
+    }
   })
 })
 

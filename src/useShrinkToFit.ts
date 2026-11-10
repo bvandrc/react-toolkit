@@ -6,19 +6,11 @@
 import { useState } from 'react'
 import { useIsomorphicLayoutEffect } from 'usehooks-ts'
 
+import { getContentHeight } from './utils'
+
 type Fit = { step: number; isSettled: boolean }
 
 const UNMEASURED: Fit = { step: 0, isSettled: false }
-
-/** How tall `el`'s content is, inside its padding and border. */
-const getContentHeight = (el: HTMLElement) => {
-  const { paddingTop, paddingBottom } = getComputedStyle(el)
-  // A DOM that doesn't lay out may leave it empty, which is no padding.
-  const padding =
-    (Number.parseFloat(paddingTop) || 0) +
-    (Number.parseFloat(paddingBottom) || 0)
-  return el.clientHeight - padding
-}
 
 /**
  * How many steps down from its largest size a line's text takes: the fewest
