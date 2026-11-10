@@ -100,6 +100,14 @@ From `@bvandrc/react-toolkit/active-tab`, with [`tab-election`](https://www.npmj
 | --- | --- |
 | `useActiveTab` | Runs an app in one tab at a time, with a `takeOver` to move it to this tab. |
 
+### Gestures
+
+From `@bvandrc/react-toolkit/gestures`, with [`@use-gesture/react`](https://www.npmjs.com/package/@use-gesture/react) installed alongside (an optional peer dependency).
+
+| Export | What it does |
+| --- | --- |
+| `useZoomPanGestures` | Zooms and pans whatever an element shows along one axis. A wheel or a pinch zooms around the value under it, and a mouse's drag, a sideways scroll, or two fingers moved together pans. Takes the wheel and the pinch from the page while there's an `onZoom`, leaves a finger's drag to the element's own handlers, and returns a ref that's true while it takes a pinch. Give the element `touch-action: none`, or a touchscreen pinches and scrolls the page as well. |
+
 ## Other Helpers
 
 Plain functions, usable outside React:

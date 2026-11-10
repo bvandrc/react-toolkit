@@ -31,6 +31,10 @@
       "types": "./dist/active-tab.d.mts",
       "default": "./dist/active-tab.mjs"
     },
+    "./gestures": {
+      "types": "./dist/gestures/index.d.mts",
+      "default": "./dist/gestures/index.mjs"
+    },
     "./test-support": {
       "types": "./dist/test-support/index.d.mts",
       "default": "./dist/test-support/index.mjs"
@@ -65,19 +69,27 @@
   },
   "peerDependencies": {
     "@testing-library/react": "^16",
+    "@use-gesture/react": "^10",
     "react": "^18 || ^19",
     "tab-election": "^4",
     "vitest": ">=3"
   },
   "peerDependenciesMeta": {
     "@testing-library/react": {
-      "optional": true
-    },
-    "tab-election": {
-      "optional": true
+      "optional": true,
+      "description": "For `./test-support`'s Vitest mocks, which render through it."
     },
     "vitest": {
-      "optional": true
+      "optional": true,
+      "description": "For `./test-support`, whose mocks are Vitest's."
+    },
+    "@use-gesture/react": {
+      "optional": true,
+      "description": "For `./gestures`, whose hooks are built on it."
+    },
+    "tab-election": {
+      "optional": true,
+      "description": "For `./active-tab`, which runs its election."
     }
   },
   "devDependencies": {
@@ -87,6 +99,7 @@
     "@testing-library/user-event": "^14",
     "@types/node": "^24",
     "@types/react": "^18",
+    "@use-gesture/react": "^10",
     "@vitejs/plugin-react": "^6",
     "happy-dom": "^21",
     "react": "^18",
