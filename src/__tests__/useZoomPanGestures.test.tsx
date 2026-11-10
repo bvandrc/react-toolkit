@@ -1,5 +1,11 @@
 import { useRef } from 'react'
-import { createEvent, fireEvent, render, screen } from '@testing-library/react'
+import {
+  createEvent,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+} from '@testing-library/react'
 
 import { useZoomPanGestures, type ZoomPanGestures } from '../useZoomPanGestures'
 
@@ -40,6 +46,13 @@ const turnWheel = (
   }
   return fireEvent(target, event)
 }
+
+/** Pinches a trackpad over `target` at each of `clientXs` in turn, spreading its fingers a little each time. */
+const pinchTrackpad = (target: Element, clientXs: number[]) =>
+  clientXs.map((clientX) =>
+    // A trackpad's pinch reaches the page as a wheel with ctrl held.
+    turnWheel(target, clientX, -10, { ctrlKey: true })
+  )
 
 /** Drags a `pointerType` pointer across `target` from `fromX` to `toX`. */
 const drag = (
@@ -93,11 +106,8 @@ describe('useZoomPanGestures', () => {
     const onZoom = vi.fn()
     const target = renderTarget({ onZoom })
 
-    // A trackpad pinch reaches the page as a wheel with ctrl held: two
-    // steps apart, since the first only sets where the pinch starts.
-    for (const deltaY of [-10, -10]) {
-      turnWheel(target, 15, deltaY, { ctrlKey: true })
-    }
+    // Two steps, since the first only sets where the pinch starts.
+    pinchTrackpad(target, [15, 15])
     // A plain wheel turned at the same point, for the zoom it would take.
     turnWheel(target, 15, -100)
     const [pinchCall, wheelCall] = onZoom.mock.calls
@@ -106,6 +116,41 @@ describe('useZoomPanGestures', () => {
     expect(pinchCall[1]).toBeLessThan(1)
     expect(pinchCall[1]).not.toBe(wheelCall[1])
     expect(pinchCall[0]).toBe(wheelCall[0])
+  })
+
+  it('leaves a pinch to zoom the page without an `onZoom`', () => {
+    const onPan = vi.fn()
+    const target = renderTarget({ onPan })
+
+    const zoomedPage = pinchTrackpad(target, [15, 10])
+    expect(zoomedPage).toEqual([true, true])
+    expect(onPan).not.toHaveBeenCalled()
+  })
+
+  it('reports a pinch underway until it ends, and pans for its fingers moved together', () => {
+    vi.useFakeTimers()
+    const onPan = vi.fn()
+    const target = document.createElement('div')
+    document.body.append(target)
+    const { result: pinchingRef } = renderHook(() =>
+      useZoomPanGestures(
+        { current: target },
+        {
+          getValueAt: (clientX) => clientX,
+          valuePerPx: VALUE_PER_PX,
+          onZoom: vi.fn(),
+          onPan,
+        }
+      )
+    )
+
+    pinchTrackpad(target, [15, 10])
+    expect(pinchingRef.current.current, 'mid-pinch').toBe(true)
+    // Moved 5px left, so the span moves right by 5px's worth.
+    expect(onPan).toHaveBeenCalledWith(5 * VALUE_PER_PX)
+    // A trackpad's pinch ends once its wheel events stop.
+    vi.advanceTimersByTime(1000)
+    expect(pinchingRef.current.current, 'ended').toBe(false)
   })
 
   it("pans for a mouse's drag, the other way to it, and leaves a finger's alone", () => {
