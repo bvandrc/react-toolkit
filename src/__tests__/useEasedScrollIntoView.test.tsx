@@ -1,11 +1,8 @@
 import { act, render, renderHook } from '@testing-library/react'
 
+import { mockScrollLayout } from '@/test-support'
 // biome-ignore lint/suspicious/noDeprecatedImports: covers the deprecated hook until it's removed.
 import { useEasedScrollIntoView } from '../useEasedScrollIntoView'
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
 
 describe('useEasedScrollIntoView', () => {
   it('scrolls smoothly', () => {
@@ -14,18 +11,11 @@ describe('useEasedScrollIntoView', () => {
         <div data-testid="el" />
       </div>
     )
-    const scrollParent = getByTestId('scroll-parent')
-    // happy-dom does no real layout, so this puts `el` 100px below the top
-    // of a scroll container it's otherwise all at the top of.
-    vi.spyOn(getByTestId('el'), 'getBoundingClientRect').mockReturnValue({
-      top: 100,
-      bottom: 150,
-    } as DOMRect)
-    const scrollTo = vi
-      .spyOn(scrollParent, 'scrollTo')
-      .mockImplementation(() => {
-        // happy-dom has no smooth scroll to run, so this only records the request.
-      })
+    const { scrollTo } = mockScrollLayout(
+      getByTestId('scroll-parent'),
+      getByTestId('el'),
+      { top: 100, height: 50, visibleHeight: 200 }
+    )
     const { result } = renderHook(() => useEasedScrollIntoView())
 
     act(() => result.current.scrollIntoView(getByTestId('el'), 'start'))

@@ -131,9 +131,10 @@ Plain functions, usable outside React:
 
 ## Test Support
 
-`@bvandrc/react-toolkit/test-support` fills in the browser APIs these hooks read and test DOMs like happy-dom and jsdom don't fully provide:
+`@bvandrc/react-toolkit/test-support` fills in the browser APIs and layout these hooks read, which test DOMs like happy-dom and jsdom don't fully provide:
 
 - `mockVisualViewport`, `mockResizeObserver`, `mockMatchMedia`, `mockMobile`, and `mockTouchDevice`: Vitest mocks, which need `vitest` and `@testing-library/react` (optional peer dependencies).
+- `mockScrollLayout`: a Vitest mock that lays an element out in its scroll container, for testing code that scrolls to it, like `useScrollIntoView` and `useScrollOnFocus`. Smooth `scrollTo` calls are recorded but never run.
 - `installTabApis`: Node's own Web Locks and `BroadcastChannel`, for testing code that coordinates tabs, like `useActiveTab`. Needs Node 24 or later.
 
 ## License

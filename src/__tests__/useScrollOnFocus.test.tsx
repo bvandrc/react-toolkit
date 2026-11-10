@@ -1,16 +1,15 @@
 import { act, fireEvent, render } from '@testing-library/react'
+import type { SetOptional } from 'type-fest'
 
 import {
+  type MockScrollLayoutState,
   mockResizeObserver,
+  mockScrollLayout,
   mockTouchDevice,
   mockVisualViewport,
 } from '@/test-support'
 import type { ScrollIntoViewBehavior } from '@/useScrollIntoView'
 import { useScrollOnFocus } from '../useScrollOnFocus'
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
 
 const Field = ({
   scrollBehavior,
@@ -27,18 +26,12 @@ const Field = ({
 const VISIBLE_HEIGHT = 200
 
 /**
- * Renders the field inside a scrollable ancestor, with layout stubbed so the
- * field sits `layout.top` below that ancestor's content top and is
- * `layout.height` tall, with `layout.visibleHeight` of the ancestor showing -- happy-dom does no real layout, so the hook has
- * nothing to measure without this. `layout` is read live, so a case can
- * resize the field by changing it.
+ * Renders the field inside a scrollable ancestor, laid out as `layout` says
+ * with `VISIBLE_HEIGHT` showing unless it says otherwise. `layout` is read
+ * live, so a case can resize the field by changing it.
  */
 const renderFieldInScrollParent = (
-  layout: {
-    top: number
-    height: number
-    visibleHeight?: number
-  },
+  layout: SetOptional<MockScrollLayoutState, 'visibleHeight'>,
   scrollBehavior?: ScrollIntoViewBehavior
 ) => {
   const { getByTestId } = render(
@@ -47,17 +40,16 @@ const renderFieldInScrollParent = (
     </div>
   )
   const scrollParent = getByTestId('scroll-parent')
-  vi.spyOn(scrollParent, 'clientHeight', 'get').mockImplementation(
-    () => layout.visibleHeight ?? VISIBLE_HEIGHT
+  const field = getByTestId('field')
+  // Onto the case's own object, so what it changes later still reaches the mock.
+  mockScrollLayout(
+    scrollParent,
+    field,
+    Object.assign(layout, {
+      visibleHeight: layout.visibleHeight ?? VISIBLE_HEIGHT,
+    })
   )
-  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
-    function (this: Element) {
-      if (this === scrollParent) return { top: 0 } as DOMRect
-      const top = layout.top - scrollParent.scrollTop
-      return { top, bottom: top + layout.height } as DOMRect
-    }
-  )
-  return { field: getByTestId('field'), scrollParent }
+  return { field, scrollParent }
 }
 
 describe('useScrollOnFocus', () => {
@@ -168,9 +160,6 @@ describe('useScrollOnFocus', () => {
       { top: 150, height: 100 },
       'smooth'
     )
-    vi.spyOn(scrollParent, 'scrollTo').mockImplementation(() => {
-      // happy-dom has no smooth scroll to run, so this only stands in for it.
-    })
 
     fireEvent.focus(field)
     // The smooth scroll landing.
@@ -191,9 +180,6 @@ describe('useScrollOnFocus', () => {
       { top: 150, height: 100 },
       'smooth'
     )
-    vi.spyOn(scrollParent, 'scrollTo').mockImplementation(() => {
-      // happy-dom has no smooth scroll to run, so this only stands in for it.
-    })
 
     fireEvent.focus(field)
     // The smooth scroll partway there when the blur stops it.

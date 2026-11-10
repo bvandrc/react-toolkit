@@ -2,11 +2,8 @@ import { onAppLeave } from '../page'
 
 /** Fires `visibilitychange` with the document reporting `state`. */
 const changeVisibility = (state: DocumentVisibilityState) => {
-  const visibilitySpy = vi
-    .spyOn(document, 'visibilityState', 'get')
-    .mockReturnValue(state)
+  vi.spyOn(document, 'visibilityState', 'get').mockReturnValue(state)
   document.dispatchEvent(new Event('visibilitychange'))
-  visibilitySpy.mockRestore()
 }
 
 describe('onAppLeave', () => {

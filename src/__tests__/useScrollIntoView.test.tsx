@@ -1,22 +1,11 @@
 import { act, render, renderHook } from '@testing-library/react'
 
-import { mockMatchMedia } from '@/test-support'
+import { mockMatchMedia, mockScrollLayout } from '@/test-support'
 import { useScrollIntoView } from '../useScrollIntoView'
 
-afterEach(() => {
-  vi.restoreAllMocks()
-  vi.unstubAllGlobals()
-  vi.useRealTimers()
-})
-
-/** How much of the scroll container shows at once. */
-const VISIBLE_HEIGHT = 200
-
 /**
- * Renders a scrollable ancestor with one child inside it, with layout stubbed
- * so the child sits `top` below the ancestor's content top and is `height`
- * tall -- happy-dom does no real layout, so the hook would have nothing to
- * scroll to without this.
+ * Renders a scrollable ancestor 200px tall with one child inside it, `top`
+ * down its content and `height` tall.
  */
 const renderElInScrollParent = ({
   top,
@@ -31,16 +20,20 @@ const renderElInScrollParent = ({
     </div>
   )
   const scrollParent = getByTestId('scroll-parent')
-  vi.spyOn(scrollParent, 'clientHeight', 'get').mockReturnValue(VISIBLE_HEIGHT)
-  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
-    function (this: Element) {
-      if (this === scrollParent) return { top: 0 } as DOMRect
-      const elTop = top - scrollParent.scrollTop
-      return { top: elTop, bottom: elTop + height } as DOMRect
-    }
-  )
-  return { el: getByTestId('el'), scrollParent }
+  const el = getByTestId('el')
+  const { scrollTo } = mockScrollLayout(scrollParent, el, {
+    top,
+    height,
+    visibleHeight: 200,
+  })
+  return { el, scrollParent, scrollTo }
 }
+
+/** Ends the container's scroll, as the browser does once a smooth one lands. */
+const endScroll = (scrollParent: HTMLElement) =>
+  act(() => {
+    scrollParent.dispatchEvent(new Event('scrollend'))
+  })
 
 /** Longer than the hook's own anchor-suppression window, so it's always done by then. */
 const PAST_SUPPRESSION_MS = 400
@@ -166,16 +159,11 @@ describe('useScrollIntoView', () => {
   })
 
   describe("with behavior 'smooth'", () => {
-    /** Renders `el` cut off below its scroll container, with the container's `scrollTo` stubbed out. */
+    /** Renders `el` cut off below its scroll container. */
     const renderCutOffEl = () => {
       const layout = renderElInScrollParent({ top: 250, height: 100 })
       layout.scrollParent.style.overflowAnchor = 'auto'
-      const scrollTo = vi
-        .spyOn(layout.scrollParent, 'scrollTo')
-        .mockImplementation(() => {
-          // happy-dom has no smooth scroll to run, so this only records the request.
-        })
-      return { ...layout, scrollTo }
+      return layout
     }
 
     it("hands the scroll to the browser's own smooth scroll, keeping anchoring off until it ends", () => {
@@ -188,9 +176,7 @@ describe('useScrollIntoView', () => {
       expect(scrollTo).toHaveBeenCalledWith({ top: 150, behavior: 'smooth' })
       expect(scrollParent.style.overflowAnchor).toBe('none')
 
-      act(() => {
-        scrollParent.dispatchEvent(new Event('scrollend'))
-      })
+      endScroll(scrollParent)
       expect(scrollParent.style.overflowAnchor).toBe('auto')
     })
 
@@ -207,9 +193,7 @@ describe('useScrollIntoView', () => {
       )
       expect(onScrollEnd).not.toHaveBeenCalled()
 
-      act(() => {
-        scrollParent.dispatchEvent(new Event('scrollend'))
-      })
+      endScroll(scrollParent)
       expect(onScrollEnd).toHaveBeenCalledOnce()
     })
 
@@ -225,9 +209,7 @@ describe('useScrollIntoView', () => {
         })
       )
       act(() => result.current.cancel())
-      act(() => {
-        scrollParent.dispatchEvent(new Event('scrollend'))
-      })
+      endScroll(scrollParent)
 
       expect(onScrollEnd).not.toHaveBeenCalled()
     })
@@ -297,15 +279,11 @@ describe('useScrollIntoView', () => {
         })
       )
       // The end of the scroll this one interrupted, still at the start.
-      act(() => {
-        scrollParent.dispatchEvent(new Event('scrollend'))
-      })
+      endScroll(scrollParent)
       expect(onScrollEnd).not.toHaveBeenCalled()
 
       scrollParent.scrollTop = 150
-      act(() => {
-        scrollParent.dispatchEvent(new Event('scrollend'))
-      })
+      endScroll(scrollParent)
       expect(onScrollEnd).toHaveBeenCalledOnce()
     })
 

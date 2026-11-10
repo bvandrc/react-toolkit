@@ -22,14 +22,10 @@ describe('createRequiredContext', () => {
   it('throws, naming the provider, when read outside it', () => {
     // React logs the thrown render error on top of rethrowing it; mocked to
     // nothing so the expected throw doesn't print as a failure.
-    const consoleError = vi
-      .spyOn(console, 'error')
-      .mockImplementation(() => undefined)
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
     expect(() => renderHook(useTestContext)).toThrow(
       'Must be used within a TestProvider'
     )
-
-    consoleError.mockRestore()
   })
 })
