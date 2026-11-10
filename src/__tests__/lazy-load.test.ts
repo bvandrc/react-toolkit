@@ -5,6 +5,9 @@ import { createLazyLoad } from '../lazy-load'
 // What the load resolves to, standing in for a module.
 const VALUE = { name: 'charts' }
 
+// What a failed load rejects with.
+const ERROR = new Error('offline')
+
 /** Mocks a load that resolves to `VALUE`. */
 const mockLoad = () => vi.fn(() => Promise.resolve(VALUE))
 
@@ -50,17 +53,13 @@ describe('createLazyLoad', () => {
     expect(load).toHaveBeenCalledOnce()
   })
 
-  it('gives a component the value another loaded since it mounted, without loading again', async () => {
-    const load = mockLoad()
-    const useLazyLoad = createLazyLoad(load)
+  it('gives every mounted component the value as soon as one loads it', async () => {
+    const useLazyLoad = createLazyLoad(mockLoad())
     const first = renderLazyLoad(useLazyLoad).result
     const second = renderLazyLoad(useLazyLoad).result
 
     await prefetch(first)
-    expect(second.current.value).toBeUndefined()
-    await prefetch(second)
     expect(second.current.value).toBe(VALUE)
-    expect(load).toHaveBeenCalledOnce()
   })
 
   it('loads nothing while disabled', async () => {
@@ -72,17 +71,47 @@ describe('createLazyLoad', () => {
     expect(result.current.value).toBeUndefined()
   })
 
-  it('reports a failed load, and tries again on the next prefetch', async () => {
+  it('reports a failed load, with its error, to every mounted component, and tries again on the next prefetch', async () => {
     const load = vi
       .fn<() => Promise<typeof VALUE>>()
-      .mockRejectedValueOnce(new Error('offline'))
+      .mockRejectedValueOnce(ERROR)
       .mockResolvedValueOnce(VALUE)
-    const { result } = renderLazyLoad(createLazyLoad(load))
+    const useLazyLoad = createLazyLoad(load)
+    const first = renderLazyLoad(useLazyLoad).result
+    const second = renderLazyLoad(useLazyLoad).result
+
+    await prefetch(first)
+    for (const hook of [first, second]) {
+      expect(hook.current).toMatchObject({
+        value: undefined,
+        isFailed: true,
+        error: ERROR,
+      })
+    }
+    act(() => second.current.prefetch())
+    // Trying again, so no longer failed while it does.
+    expect(first.current).toMatchObject({ isFailed: false, error: undefined })
+    await act(() => Promise.resolve())
+    expect(first.current).toMatchObject({ value: VALUE, isFailed: false })
+    expect(load).toHaveBeenCalledTimes(2)
+  })
+
+  it('reports a load that throws before it returns a promise as failed, rather than throwing', async () => {
+    const useLazyLoad = createLazyLoad<typeof VALUE>(() => {
+      throw ERROR
+    })
+    const { result } = renderLazyLoad(useLazyLoad)
 
     await prefetch(result)
-    expect(result.current).toMatchObject({ value: undefined, isFailed: true })
-    await prefetch(result)
-    expect(result.current).toMatchObject({ value: VALUE, isFailed: false })
-    expect(load).toHaveBeenCalledTimes(2)
+    expect(result.current).toMatchObject({ isFailed: true, error: ERROR })
+  })
+
+  it('keeps `prefetch` across renders', () => {
+    // A consumer may list it as an effect or callback dependency.
+    const { result, rerender } = renderLazyLoad(createLazyLoad(mockLoad()))
+    const { prefetch: firstPrefetch } = result.current
+
+    rerender()
+    expect(result.current.prefetch).toBe(firstPrefetch)
   })
 })

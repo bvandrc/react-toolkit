@@ -82,6 +82,7 @@ Requires React 18 or 19. ESM only, with types included.
 | `useTimer` | A timeout started from a handler rather than on render, replaced by the next `start` and cleared on unmount. |
 | `useHasPassed` | Whether a date has passed, re-rendering at the moment it does with one timer rather than polling. |
 | `useDebouncedPersist` | Persists a value to `localStorage`, debounced, and flushed when the app is hidden or closed so nothing is lost to the debounce window. |
+| `createLazyLoad` | Makes a hook for something loaded on demand, like code and data kept out of the first load, which every component using it shares: the value once loaded, whether loading failed and why, and a `prefetch` to start it, say as a pointer arrives. Loads once, however many components prefetch, and every mounted component sees the result at once. |
 
 ### Tabs
 
@@ -105,7 +106,6 @@ Plain functions, usable outside React:
     <tr><td><code>buildMailtoHref</code></td><td>A <code>mailto:</code> link with its subject and body filled in, with spaces encoded so mail clients don't show them as <code>+</code>.</td></tr>
     <tr><td colspan="2"><b><i>Context</i></b></td></tr>
     <tr><td><code>createRequiredContext</code></td><td>A context paired with the hook that reads it, which throws outside its provider so callers get the value without a <code>null</code> check.</td></tr>
-    <tr><td><code>createLazyLoad</code></td><td>A hook for something loaded on demand, like code and data kept out of the first load, shared by every component using it: the value once loaded, whether loading failed, and a <code>prefetch</code> to start it, say as a pointer arrives. Loads once, however many components prefetch, and starts components mounted later with the value.</td></tr>
     <tr><td colspan="2"><b><i>Device identity</i></b></td></tr>
     <tr><td><code>createDeviceId</code></td><td>A per-install id kept in <code>localStorage</code>, minted on first read under a Web Lock so tabs opening at once agree on one, with a setter that can be used to carry it across a wholesale <code>localStorage.clear()</code>.</td></tr>
     <tr><td colspan="2"><b><i>Constants</i></b></td></tr>
