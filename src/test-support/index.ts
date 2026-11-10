@@ -4,4 +4,5 @@
 export * from './install-tab-apis'
 export * from './mock-media-queries'
 export * from './mock-resize-observer'
+export * from './mock-scroll-layout'
 export * from './mock-visual-viewport'

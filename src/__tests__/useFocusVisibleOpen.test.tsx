@@ -5,10 +5,6 @@ import { useFocusVisibleOpen } from '../useFocusVisibleOpen'
 
 const T_IDS = { TRIGGER: 'trigger', CLOSE: 'close' } as const
 
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
 /** A trigger showing whether the hook says it's open, and a button that closes it. */
 const OpenOnFocusTrigger = () => {
   const { open, setOpen, focusProps } = useFocusVisibleOpen()

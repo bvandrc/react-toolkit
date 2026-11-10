@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 
-import { mockVisualViewport } from '@/test-support'
+import { mockScrollLayout, mockVisualViewport } from '@/test-support'
 import {
   findScrollableAncestor,
   getContentHeight,
@@ -75,8 +75,7 @@ describe('getTargetScrollTop', () => {
 
   /**
    * An element `top` below its scroll container's content top and `height`
-   * tall, with the container scrolled to `scrollTop` -- happy-dom does no real
-   * layout, so it's stubbed in.
+   * tall, with the container scrolled to `scrollTop`.
    */
   const createElInScrollParent = ({
     top,
@@ -93,22 +92,13 @@ describe('getTargetScrollTop', () => {
     scrollParent.appendChild(el)
     document.body.appendChild(scrollParent)
     scrollParent.scrollTop = scrollTop
-    vi.spyOn(scrollParent, 'clientHeight', 'get').mockReturnValue(
-      VISIBLE_HEIGHT
-    )
-    vi.spyOn(scrollParent, 'getBoundingClientRect').mockReturnValue({
-      top: 0,
-    } as DOMRect)
-    vi.spyOn(el, 'getBoundingClientRect').mockReturnValue({
-      top: top - scrollTop,
-      bottom: top - scrollTop + height,
-    } as DOMRect)
+    mockScrollLayout(scrollParent, el, {
+      top,
+      height,
+      visibleHeight: VISIBLE_HEIGHT,
+    })
     return { el, scrollParent }
   }
-
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
 
   it('measures against the nearest scrollable ancestor when given none', () => {
     const { el } = createElInScrollParent({
@@ -201,10 +191,6 @@ describe('getRoomAround', () => {
     } as DOMRect)
     return el
   }
-
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
 
   it('measures against the window without a visual viewport', () => {
     vi.stubGlobal('visualViewport', undefined)

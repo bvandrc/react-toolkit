@@ -6,10 +6,6 @@ import { useShrinkToFit } from '../useShrinkToFit'
 
 const T_IDS = { LINE: 'line', TEXT: 'text' } as const
 
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
 // One line's height, as the text's own.
 const LINE_HEIGHT = 24
 

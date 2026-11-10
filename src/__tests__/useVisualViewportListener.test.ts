@@ -3,10 +3,6 @@ import { renderHook } from '@testing-library/react'
 import { mockVisualViewport } from '@/test-support'
 import { useVisualViewportListener } from '../useVisualViewportListener'
 
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
-
 describe('useVisualViewportListener', () => {
   const handler = vi.fn()
 
