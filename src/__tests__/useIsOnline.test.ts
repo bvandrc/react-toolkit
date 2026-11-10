@@ -3,20 +3,20 @@ import { act, renderHook } from '@testing-library/react'
 import { useIsOnline } from '../useIsOnline'
 
 /** Has the browser report `isOnline` from here on. */
-const mockOnLine = (isOnline: boolean) =>
+const mockIsOnline = (isOnline: boolean) =>
   vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(isOnline)
 
 describe('useIsOnline', () => {
   it('starts from what the browser reports', () => {
     for (const isOnline of [true, false]) {
-      mockOnLine(isOnline)
+      mockIsOnline(isOnline)
       const { result } = renderHook(() => useIsOnline())
       expect(result.current, String(isOnline)).toBe(isOnline)
     }
   })
 
   it('follows the browser going offline and back', () => {
-    mockOnLine(true)
+    mockIsOnline(true)
     const { result } = renderHook(() => useIsOnline())
 
     act(() => window.dispatchEvent(new Event('offline')))
@@ -27,7 +27,7 @@ describe('useIsOnline', () => {
   })
 
   it('reports each change to onChange', () => {
-    mockOnLine(true)
+    mockIsOnline(true)
     const onChange = vi.fn()
     renderHook(() => useIsOnline({ onChange }))
 
