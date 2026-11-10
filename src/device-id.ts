@@ -12,6 +12,9 @@ const readStoredId = (storageKey: string): string | undefined => {
   }
 }
 
+const writeStoredId = (storageKey: string, deviceId: string) =>
+  localStorage.setItem(storageKey, JSON.stringify(deviceId))
+
 /**
  * A device id kept under `storageKey`: generated on its first read, then
  * stable for this browser profile.
@@ -30,14 +33,11 @@ export const createDeviceId = ({
 }) => {
   let cachedDeviceId: string | undefined
 
-  const storeId = (deviceId: string) =>
-    localStorage.setItem(storageKey, JSON.stringify(deviceId))
-
   const readOrMintDeviceId = (): string => {
     const stored = readStoredId(storageKey)
     if (stored) return stored
     const minted = crypto.randomUUID()
-    storeId(minted)
+    writeStoredId(storageKey, minted)
     return minted
   }
 
@@ -75,7 +75,7 @@ export const createDeviceId = ({
       // Set rather than read after the clear: a read falls through to an empty
       // store and mints a new id whenever the cache is cold.
       cachedDeviceId = deviceId
-      storeId(deviceId)
+      writeStoredId(storageKey, deviceId)
     },
   }
 }
