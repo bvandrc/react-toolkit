@@ -31,9 +31,9 @@
       "types": "./dist/active-tab.d.mts",
       "default": "./dist/active-tab.mjs"
     },
-    "./zoom-pan": {
-      "types": "./dist/zoom-pan.d.mts",
-      "default": "./dist/zoom-pan.mjs"
+    "./gestures": {
+      "types": "./dist/gestures/index.d.mts",
+      "default": "./dist/gestures/index.mjs"
     },
     "./test-support": {
       "types": "./dist/test-support/index.d.mts",

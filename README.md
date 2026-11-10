@@ -100,9 +100,9 @@ From `@bvandrc/react-toolkit/active-tab`, with [`tab-election`](https://www.npmj
 | --- | --- |
 | `useActiveTab` | Runs an app in one tab at a time, with a `takeOver` to move it to this tab. |
 
-### Zoom and Pan
+### Gestures
 
-From `@bvandrc/react-toolkit/zoom-pan`, with [`@use-gesture/react`](https://www.npmjs.com/package/@use-gesture/react) installed alongside (an optional peer dependency).
+From `@bvandrc/react-toolkit/gestures`, with [`@use-gesture/react`](https://www.npmjs.com/package/@use-gesture/react) installed alongside (an optional peer dependency).
 
 | Export | What it does |
 | --- | --- |
