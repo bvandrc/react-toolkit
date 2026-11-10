@@ -31,6 +31,9 @@ export const findScrollableAncestor = (node: HTMLElement): HTMLElement => {
 /** A scroll padding's computed value in px, where a percentage is of the scrollport's height. */
 const toScrollPaddingPx = (value: string, scrollportHeight: number) => {
   // `auto`, and the empty value a DOM that doesn't lay out leaves, are none.
+  // So is a `calc()` mixing a percentage and a length, which the browser
+  // keeps unresolved; a plain length or percentage, as Tailwind's
+  // `scroll-pt-*` gives, comes through.
   const length = Number.parseFloat(value) || 0
   return value.endsWith('%') ? (length / 100) * scrollportHeight : length
 }
@@ -62,6 +65,17 @@ export const getVisibleBounds = (scrollParent: HTMLElement) => {
   }
 }
 
+/** Whether `el`, or an ancestor, is `position: fixed`, which keeps it still as the page scrolls. */
+const isOnFixedLayer = (el: HTMLElement) => {
+  // A fixed element inside a transformed or filtered ancestor scrolls with
+  // the page all the same, which this doesn't catch; dialogs portal to the
+  // body, out of any such ancestor.
+  for (let node: HTMLElement | null = el; node; node = node.parentElement) {
+    if (getComputedStyle(node).position === 'fixed') return true
+  }
+  return false
+}
+
 /** Where to put an element scrolled into view, named as `Element.scrollIntoView`'s `block` names them. */
 export type ScrollBlock = Extract<
   ScrollLogicalPosition,
@@ -76,13 +90,18 @@ export type ScrollBlock = Extract<
  * when it's too tall to fit. `nearest` shows all of it with the least
  * movement: unchanged when it's already fully visible, its bottom edge
  * aligned when it's cut off below, and its top edge aligned when it's cut off
- * above or too tall to fit.
+ * above or too tall to fit. An element on a fixed layer, which the page's
+ * scroll doesn't move, leaves the page where it is, as the browser's own
+ * `scrollIntoView` does.
  */
 export const getTargetScrollTop = (
   el: HTMLElement,
   block: ScrollBlock,
   scrollParent: HTMLElement = findScrollableAncestor(el)
 ) => {
+  if (scrollParent === document.scrollingElement && isOnFixedLayer(el)) {
+    return scrollParent.scrollTop
+  }
   const rect = el.getBoundingClientRect()
   const visible = getVisibleBounds(scrollParent)
   const tooTall = rect.bottom - rect.top > visible.bottom - visible.top
@@ -124,14 +143,6 @@ export const getContentHeight = (el: HTMLElement) => {
     (Number.parseFloat(paddingTop) || 0) +
     (Number.parseFloat(paddingBottom) || 0)
   return el.clientHeight - padding
-}
-
-/** Whether `el`, or an ancestor, is `position: fixed`, which keeps it still as the page scrolls. */
-const isOnFixedLayer = (el: HTMLElement) => {
-  for (let node: HTMLElement | null = el; node; node = node.parentElement) {
-    if (getComputedStyle(node).position === 'fixed') return true
-  }
-  return false
 }
 
 /**

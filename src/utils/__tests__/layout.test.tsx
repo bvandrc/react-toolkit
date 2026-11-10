@@ -242,6 +242,27 @@ describe('getTargetScrollTop', () => {
 
     expect(getTargetScrollTop(el, 'nearest', scrollParent)).toBe(50)
   })
+
+  it("leaves the page where it is for an element on a fixed layer, which the page's scroll doesn't move", () => {
+    vi.stubGlobal('innerHeight', 600)
+    // A field in the strip the page's padding keeps clear, in a dialog with
+    // no scroll container of its own.
+    setPageScrollPadding({ scrollPaddingTop: '48px' })
+    const dialog = document.createElement('div')
+    dialog.style.position = 'fixed'
+    const field = document.createElement('input')
+    dialog.append(field)
+    document.body.append(dialog)
+    vi.spyOn(field, 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ y: 10, height: 20 })
+    )
+    const page = document.scrollingElement as HTMLElement
+    vi.spyOn(page, 'scrollTop', 'get').mockReturnValue(300)
+
+    for (const block of ['start', 'center', 'nearest'] as const) {
+      expect(getTargetScrollTop(field, block), block).toBe(300)
+    }
+  })
 })
 
 describe('getRoomAround', () => {
