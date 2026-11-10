@@ -20,7 +20,6 @@ Requires React 18 or 19. ESM only, with types included.
 | `detectDevice` | Whether the page is running on iOS, Android, or desktop, based on `navigator.userAgent`. |
 | `useVisualViewportPin` | Keeps a fixed, full-screen element, like a sheet, matched to `window.visualViewport`, so it stays on screen and scrollable while the on-screen keyboard is open or the page is pinch-zoomed. |
 | `useVisualViewportListener` | Calls a handler on each visual viewport `resize` or `scroll`, for as long as the component is mounted. |
-| `getRoomAround` | How much of the screen is free above and below an element, not counting what an open on-screen keyboard covers. |
 <!-- Not really that important / useful compared to how much it takes to explain -->
 <!-- | `getBelowBreakpointQuery` | The media query `useIsMobile` matches for a breakpoint, stopping 1px short so it never overlaps a `min-width` style at the same width. | -->
 
@@ -31,6 +30,7 @@ Requires React 18 or 19. ESM only, with types included.
 | `useShrinkToFit` | How many steps down through a set of text sizes, largest first, keep a line from wrapping: the fewest that do, or none where no step does. Measures before paint, and again when the line's width or the number of sizes changes, or a font loads. The text must not wrap itself. |
 | `getContentHeight` | How tall an element's content is, inside its padding and border. |
 | `isInView` | Whether all of an element is on screen: inside the window, and inside the visible part of its scroll container. |
+| `getRoomAround` | How much of the screen is free above and below an element, not counting what an open on-screen keyboard covers. |
 
 ### Page Lifecycle
 
