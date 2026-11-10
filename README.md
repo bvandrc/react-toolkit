@@ -60,6 +60,7 @@ Requires React 18 or 19. ESM only, with types included.
 | `useFocusReturn` | Remembers what had focus when a dialog opened, and returns focus to it on close. Plugs straight into a Radix dialog's `onCloseAutoFocus`. |
 | `useTouchKeepsFocus` | Props for a menu or popover's trigger and content that leave focus in a text field when it's opened by touch, so the on-screen keyboard stays open through the open and each tap on an item. Plugs straight into a Radix menu or popover's `onOpenAutoFocus`. |
 | `useFocusVisibleOpen` | Open state for something focus opens, like a tooltip, with focus and blur handlers to spread onto its trigger. Only focus the browser would ring opens it, keyboard focus say, the same as Radix's own triggers, and only once the scroll that focus brings has finished, since Radix closes a tooltip whose trigger scrolls. A blur or a close before then calls it off. |
+| `useTooltipFocusOpen` | `useFocusVisibleOpen` fitted to a Radix tooltip, in place of Radix's own open on focus, which a trigger out of view loses to the scroll that focus brings. Takes the tooltip's other open state, like `usePressToggle`'s, or holds it itself for one only hover opens, and returns the `open` and `onOpenChange` for its root, the focus handlers for its trigger, and `dropFocusOpen` for a press that takes over from focus. |
 | `blurFocusedTextInput` | Blurs the focused text `input`, `textarea`, or `contenteditable`, closing the on-screen keyboard, and returns whether there was one to blur. |
 
 ### Press and Toggle
