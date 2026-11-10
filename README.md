@@ -83,6 +83,7 @@ Requires React 18 or 19. ESM only, with types included.
 | `useTimer` | A timeout started from a handler rather than on render, replaced by the next `start` and cleared on unmount. |
 | `useHasPassed` | Whether a date has passed, re-rendering at the moment it does with one timer rather than polling. |
 | `useDebouncedPersist` | Persists a value to `localStorage`, debounced, and flushed when the app is hidden or closed so nothing is lost to the debounce window. |
+| `createLazyLoad` | Makes a hook for something loaded on demand, like code and data kept out of the first load, which every component using it shares: the value once loaded, whether loading failed and why, and a `prefetch` to start it, say as a pointer arrives. Loads once, however many components prefetch, and every mounted component sees the result at once. |
 
 ### Tabs
 
