@@ -6,6 +6,7 @@ import {
   getContentHeight,
   getRoomAround,
   getTargetScrollTop,
+  getVisibleBounds,
   isInView,
   onFocusScrollEnd,
 } from '../layout'
@@ -66,6 +67,55 @@ describe('findScrollableAncestor', () => {
     expect(findScrollableAncestor(target)).toBe(
       document.scrollingElement ?? document.documentElement
     )
+  })
+})
+
+/** Sets the page's own scroll padding for one case, as a sticky header would. */
+const setPageScrollPadding = (padding: Partial<CSSStyleDeclaration>) => {
+  const { style } = document.documentElement
+  Object.assign(style, padding)
+  // The setup clears the body's style after each case, but not the root's.
+  onTestFinished(() => {
+    style.removeProperty('scroll-padding-top')
+    style.removeProperty('scroll-padding-bottom')
+  })
+}
+
+describe('getVisibleBounds', () => {
+  it("leaves out a scroll container's scroll padding, in px or as a share of its height", () => {
+    const CASES = [
+      ['none', { scrollPaddingTop: '', scrollPaddingBottom: '' }, 200, 400],
+      [
+        'px',
+        { scrollPaddingTop: '48px', scrollPaddingBottom: '8px' },
+        248,
+        392,
+      ],
+      // Of its 200px height.
+      ['%', { scrollPaddingTop: '10%', scrollPaddingBottom: '5%' }, 220, 390],
+    ] as const
+    for (const [unit, padding, top, bottom] of CASES) {
+      const container = document.createElement('div')
+      Object.assign(container.style, padding)
+      // Attached, since the test DOM computes no style for a detached one.
+      document.body.append(container)
+      vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(
+        DOMRect.fromRect({ y: 200, height: 200 })
+      )
+      vi.spyOn(container, 'clientHeight', 'get').mockReturnValue(200)
+
+      expect(getVisibleBounds(container), unit).toEqual({ top, bottom })
+    }
+  })
+
+  it("leaves out the page's scroll padding from the window", () => {
+    vi.stubGlobal('innerHeight', 600)
+    setPageScrollPadding({ scrollPaddingTop: '48px' })
+
+    expect(getVisibleBounds(document.scrollingElement as HTMLElement)).toEqual({
+      top: 48,
+      bottom: 600,
+    })
   })
 })
 
@@ -132,6 +182,19 @@ describe('getTargetScrollTop', () => {
     expect(getTargetScrollTop(el, 'center', scrollParent)).toBe(200)
   })
 
+  it('centers the element below its scroll padding with center', () => {
+    const { el, scrollParent } = createElInScrollParent({
+      top: 250,
+      height: 100,
+      scrollTop: 100,
+    })
+    // A 40px sticky header, leaving 160px visible below it.
+    scrollParent.style.scrollPaddingTop = '40px'
+
+    // Its middle, 300 down, sits half that 160px below the header's 40px.
+    expect(getTargetScrollTop(el, 'center', scrollParent)).toBe(180)
+  })
+
   it('aligns the top with center when too tall to fit', () => {
     // Centering would scroll its top out of view.
     const { el, scrollParent } = createElInScrollParent({
@@ -178,6 +241,27 @@ describe('getTargetScrollTop', () => {
     })
 
     expect(getTargetScrollTop(el, 'nearest', scrollParent)).toBe(50)
+  })
+
+  it("leaves the page where it is for an element on a fixed layer, which the page's scroll doesn't move", () => {
+    vi.stubGlobal('innerHeight', 600)
+    // A field in the strip the page's padding keeps clear, in a dialog with
+    // no scroll container of its own.
+    setPageScrollPadding({ scrollPaddingTop: '48px' })
+    const dialog = document.createElement('div')
+    dialog.style.position = 'fixed'
+    const field = document.createElement('input')
+    dialog.append(field)
+    document.body.append(dialog)
+    vi.spyOn(field, 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ y: 10, height: 20 })
+    )
+    const page = document.scrollingElement as HTMLElement
+    vi.spyOn(page, 'scrollTop', 'get').mockReturnValue(300)
+
+    for (const block of ['start', 'center', 'nearest'] as const) {
+      expect(getTargetScrollTop(field, block), block).toBe(300)
+    }
   })
 })
 
@@ -278,6 +362,36 @@ describe('isInView', () => {
       // In the window, but scrolled out of the container's visible part.
       ['above its container', createElementAt(150, container), false],
       ['below its container', createElementAt(320, container), false],
+    ] as const
+    for (const [where, element, expected] of CASES) {
+      expect(isInView(element), where).toBe(expected)
+    }
+  })
+
+  it("leaves out the page's scroll padding only for an element that scrolls with the page", () => {
+    setPageScrollPadding({ scrollPaddingTop: '220px' })
+    const container = createScrollContainer()
+    const fixedLayer = document.createElement('div')
+    fixedLayer.style.position = 'fixed'
+    document.body.append(fixedLayer)
+    const fixedContainer = createScrollContainer()
+    fixedLayer.append(fixedContainer)
+    const CASES = [
+      ['under the header', createElementAt(210), false],
+      ['below the header', createElementAt(220), true],
+      // Its container, 200px down, has scrolled partly under the header.
+      [
+        'in its container, under the header',
+        createElementAt(210, container),
+        false,
+      ],
+      // A dialog sits over the header, so the page's padding doesn't apply.
+      ['on a fixed layer', createElementAt(210, fixedLayer), true],
+      [
+        'in a scroll container on a fixed layer',
+        createElementAt(210, fixedContainer),
+        true,
+      ],
     ] as const
     for (const [where, element, expected] of CASES) {
       expect(isInView(element), where).toBe(expected)
