@@ -1,12 +1,13 @@
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({
-  // `active-tab` and `gestures` stand apart so the main entry never imports
-  // `tab-election` or `@use-gesture/react`, optional peers a consumer without
-  // their hooks doesn't install.
   entry: [
     'src/index.ts',
+    // Apart, so the main entry never imports `tab-election`, an optional peer
+    // a consumer without `useActiveTab` doesn't install.
     'src/active-tab.ts',
+    // Apart, so the main entry never imports `@use-gesture/react`, an optional
+    // peer a consumer without the gesture hooks doesn't install.
     'src/gestures/index.ts',
     'src/test-support/index.ts',
   ],
