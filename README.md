@@ -29,7 +29,7 @@ Requires React 18 or 19. ESM only, with types included.
 | --- | --- |
 | `useShrinkToFit` | How many steps down through a set of text sizes, largest first, keep a line from wrapping: the fewest that do, or none where no step does. Measures before paint, and again when the line's width or the number of sizes changes, or a font loads. The text must not wrap itself. |
 | `getContentHeight` | How tall an element's content is, inside its padding and border. |
-| `isInView` | Whether all of an element is on screen: inside the window, and inside the visible part of its scroll container. |
+| `isInView` | Whether all of an element is on screen: inside the window, and inside the visible part of its scroll container, neither counting what their scroll padding marks off. |
 | `getRoomAround` | How much of the screen is free above and below an element, not counting what an open on-screen keyboard covers. |
 
 ### Page Lifecycle
@@ -44,12 +44,12 @@ Requires React 18 or 19. ESM only, with types included.
 
 | Export | What it does |
 | --- | --- |
-| `useScrollIntoView` | `scrollIntoView` within an element's own scroll container, held against scroll anchoring, and cancelable. Jumps by default; pass `smooth` to animate it, except for users who prefer reduced motion. `onScrollEnd` is called once it lands. |
+| `useScrollIntoView` | `scrollIntoView` within an element's own scroll container, held against scroll anchoring, and cancelable. Keeps clear of the container's scroll padding, such as a sticky header's height, as the browser's own does. Jumps by default; pass `smooth` to animate it, except for users who prefer reduced motion. `onScrollEnd` is called once it lands. |
 | `useScrollOnFocus` | Handlers that scroll a focused element into view and keep it there as it resizes. On touch devices, also restores the scroll position the on-screen keyboard leaves behind when it closes. Jumps by default; pass `smooth` to animate it. |
 | `useMakeRoomForPopover` | When a popover mounts too tall to fit above or below its trigger, scrolls the trigger's scroll area so it does. Jumps by default; pass `smooth` to animate it. |
-| `getTargetScrollTop` | The `scrollTop` that would bring an element into view within its scroll container: at its top, centered, or as little as it takes. |
+| `getTargetScrollTop` | The `scrollTop` that would bring an element into view within its scroll container: at its top, centered, or as little as it takes, clear of the container's scroll padding. |
 | `findScrollableAncestor` | The nearest ancestor whose own overflow scrolls, or the document's scrolling element when none does. |
-| `getVisibleBounds` | The visible top and bottom of a scroll container in viewport coordinates, counting only the on-screen part when that's the document itself. |
+| `getVisibleBounds` | The visible top and bottom of a scroll container in viewport coordinates, counting only the on-screen part when that's the document itself, and leaving out its scroll padding, which marks what a sticky header or footer covers. |
 | `onFocusScrollEnd` | Calls back once the scroll that focusing an element brings has finished, in its scroll container or the page: on `scrollend`, or a second on at most, for one out of view, or a frame on for one already in view. Returns a function that calls it off. Works outside React. |
 
 ### Focus

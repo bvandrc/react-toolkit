@@ -28,15 +28,38 @@ export const findScrollableAncestor = (node: HTMLElement): HTMLElement => {
   )
 }
 
-/** The visible top and bottom of `scrollParent`, in viewport coordinates. */
+/** A scroll padding's computed value in px, where a percentage is of the scrollport's height. */
+const toScrollPaddingPx = (value: string, scrollportHeight: number) => {
+  // `auto`, and the empty value a DOM that doesn't lay out leaves, are none.
+  const length = Number.parseFloat(value) || 0
+  return value.endsWith('%') ? (length / 100) * scrollportHeight : length
+}
+
+/**
+ * The visible top and bottom of `scrollParent`, in viewport coordinates.
+ *
+ * Leaves out its scroll padding, which marks what a sticky header or footer
+ * covers, as the browser's own `scrollIntoView` does.
+ */
 export const getVisibleBounds = (scrollParent: HTMLElement) => {
+  let top: number
+  let bottom: number
   // The document's scrolling element measures its whole scrolled height, not
   // the part of it on screen.
   if (scrollParent === document.scrollingElement) {
-    return { top: 0, bottom: window.innerHeight }
+    top = 0
+    bottom = window.innerHeight
+  } else {
+    top = scrollParent.getBoundingClientRect().top + scrollParent.clientTop
+    bottom = top + scrollParent.clientHeight
   }
-  const top = scrollParent.getBoundingClientRect().top + scrollParent.clientTop
-  return { top, bottom: top + scrollParent.clientHeight }
+  const { scrollPaddingTop, scrollPaddingBottom } =
+    getComputedStyle(scrollParent)
+  const height = bottom - top
+  return {
+    top: top + toScrollPaddingPx(scrollPaddingTop, height),
+    bottom: bottom - toScrollPaddingPx(scrollPaddingBottom, height),
+  }
 }
 
 /** Where to put an element scrolled into view, named as `Element.scrollIntoView`'s `block` names them. */
@@ -105,14 +128,19 @@ export const getContentHeight = (el: HTMLElement) => {
 
 /**
  * Whether all of `el` is on screen: inside the window, and inside the visible
- * part of its scroll container.
+ * part of its scroll container, neither counting what their scroll padding
+ * marks off.
  */
 export const isInView = (el: HTMLElement) => {
   const { top, right, bottom, left } = el.getBoundingClientRect()
   const container = getVisibleBounds(findScrollableAncestor(el))
+  const page = getVisibleBounds(
+    (document.scrollingElement as HTMLElement | null) ??
+      document.documentElement
+  )
   return (
-    top >= Math.max(container.top, 0) &&
-    bottom <= Math.min(container.bottom, window.innerHeight) &&
+    top >= Math.max(container.top, page.top) &&
+    bottom <= Math.min(container.bottom, page.bottom) &&
     left >= 0 &&
     right <= window.innerWidth
   )
