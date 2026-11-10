@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
@@ -15,9 +14,16 @@ const T_IDS = {
  * A tooltip trigger showing whether the tooltip is open, opening on focus
  * as a Radix trigger does, with buttons that stand in for hover, a close, and
  * a press taking over from focus.
+ *
+ * Holds its own open state unless given one.
  */
-const TooltipTrigger = () => {
-  const [open, setOpen] = useState(false)
+const TooltipTrigger = ({
+  open,
+  setOpen,
+}: {
+  open?: boolean
+  setOpen?: (next: boolean) => void
+}) => {
   const { rootProps, focusProps, dropFocusOpen } = useTooltipFocusOpen(
     open,
     setOpen
@@ -113,5 +119,18 @@ describe('useTooltipFocusOpen', () => {
 
     expect(getTriggerState()).toBe('closed')
     expect(screen.getByTestId(T_IDS.TRIGGER)).toHaveFocus()
+  })
+
+  it('shows the open state it is given, and closes through its setter, where given one', async () => {
+    const user = userEvent.setup()
+    const setOpen = vi.fn()
+    render(<TooltipTrigger open setOpen={setOpen} />)
+
+    expect(getTriggerState()).toBe('open')
+    await user.click(screen.getByTestId(T_IDS.CLOSE))
+
+    expect(setOpen).toHaveBeenCalledExactlyOnceWith(false)
+    // Left to the owner of the state, which here keeps it open.
+    expect(getTriggerState()).toBe('open')
   })
 })
