@@ -91,6 +91,31 @@ export const getRoomAround = (el: Element) => {
   return { above: top - visibleTop, below: visibleBottom - bottom }
 }
 
+/** How tall `el`'s content is, inside its padding and border. */
+export const getContentHeight = (el: HTMLElement) => {
+  const { paddingTop, paddingBottom } = getComputedStyle(el)
+  // A DOM that doesn't lay out may leave it empty, which is no padding.
+  const padding =
+    (Number.parseFloat(paddingTop) || 0) +
+    (Number.parseFloat(paddingBottom) || 0)
+  return el.clientHeight - padding
+}
+
+/**
+ * Whether all of `el` is on screen: inside the window, and inside the visible
+ * part of its scroll container.
+ */
+export const isInView = (el: HTMLElement) => {
+  const { top, right, bottom, left } = el.getBoundingClientRect()
+  const container = getVisibleBounds(findScrollableAncestor(el))
+  return (
+    top >= Math.max(container.top, 0) &&
+    bottom <= Math.min(container.bottom, window.innerHeight) &&
+    left >= 0 &&
+    right <= window.innerWidth
+  )
+}
+
 /**
  * The longest to wait for a focus scroll to say it ended, for one that never
  * does: no scroll came, or the browser lacks `scrollend`. Past any browser's
@@ -107,19 +132,11 @@ const FOCUS_SCROLL_MAX_MS = 1000
  * view waits a frame, for the scroll event of any instant scroll that brought
  * it there; one out of view waits for `scrollend`, or a second at most.
  */
-export const afterFocusScroll = (
+export const onFocusScrollEnd = (
   element: HTMLElement,
   callback: () => void
 ) => {
-  const { top, right, bottom, left } = element.getBoundingClientRect()
-  // In view of its scroll container, and of the window that container sits in.
-  const container = getVisibleBounds(findScrollableAncestor(element))
-  const inView =
-    top >= Math.max(container.top, 0) &&
-    bottom <= Math.min(container.bottom, window.innerHeight) &&
-    left >= 0 &&
-    right <= window.innerWidth
-  if (inView) {
+  if (isInView(element)) {
     const frame = requestAnimationFrame(callback)
     return () => cancelAnimationFrame(frame)
   }

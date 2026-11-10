@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { afterFocusScroll } from './utils'
+import { onFocusScrollEnd } from './utils'
 
 /**
  * Whether something an element opens, like a tooltip, is open, which focus
@@ -31,7 +31,7 @@ export const useFocusVisibleOpen = () => {
       onFocus: (event: React.FocusEvent<HTMLElement>) => {
         const element = event.currentTarget
         cancelRef.current?.()
-        cancelRef.current = afterFocusScroll(element, () =>
+        cancelRef.current = onFocusScrollEnd(element, () =>
           setOpenState(element.matches(':focus-visible'))
         )
       },
