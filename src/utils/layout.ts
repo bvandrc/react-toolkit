@@ -126,18 +126,38 @@ export const getContentHeight = (el: HTMLElement) => {
   return el.clientHeight - padding
 }
 
+/** Whether `el`, or an ancestor, is `position: fixed`, which keeps it still as the page scrolls. */
+const isOnFixedLayer = (el: HTMLElement) => {
+  for (let node: HTMLElement | null = el; node; node = node.parentElement) {
+    if (getComputedStyle(node).position === 'fixed') return true
+  }
+  return false
+}
+
 /**
  * Whether all of `el` is on screen: inside the window, and inside the visible
  * part of its scroll container, neither counting what their scroll padding
  * marks off.
+ *
+ * The page's scroll padding counts only for an element that scrolls with the
+ * page, as the browser's own does: one on a fixed layer, like a dialog, sits
+ * over the header that padding keeps clear of.
  */
 export const isInView = (el: HTMLElement) => {
   const { top, right, bottom, left } = el.getBoundingClientRect()
-  const container = getVisibleBounds(findScrollableAncestor(el))
-  const page = getVisibleBounds(
-    (document.scrollingElement as HTMLElement | null) ??
-      document.documentElement
-  )
+  const scrollParent = findScrollableAncestor(el)
+  const page = isOnFixedLayer(el)
+    ? { top: 0, bottom: window.innerHeight }
+    : getVisibleBounds(
+        (document.scrollingElement as HTMLElement | null) ??
+          document.documentElement
+      )
+  // With no scroll container of its own, a fixed element's is the page, which
+  // doesn't move it.
+  const container =
+    scrollParent === document.scrollingElement
+      ? page
+      : getVisibleBounds(scrollParent)
   return (
     top >= Math.max(container.top, page.top) &&
     bottom <= Math.min(container.bottom, page.bottom) &&

@@ -347,9 +347,14 @@ describe('isInView', () => {
     }
   })
 
-  it("is false for an element under the page's scroll padding, as a sticky header covers it", () => {
+  it("leaves out the page's scroll padding only for an element that scrolls with the page", () => {
     setPageScrollPadding({ scrollPaddingTop: '220px' })
     const container = createScrollContainer()
+    const fixedLayer = document.createElement('div')
+    fixedLayer.style.position = 'fixed'
+    document.body.append(fixedLayer)
+    const fixedContainer = createScrollContainer()
+    fixedLayer.append(fixedContainer)
     const CASES = [
       ['under the header', createElementAt(210), false],
       ['below the header', createElementAt(220), true],
@@ -358,6 +363,13 @@ describe('isInView', () => {
         'in its container, under the header',
         createElementAt(210, container),
         false,
+      ],
+      // A dialog sits over the header, so the page's padding doesn't apply.
+      ['on a fixed layer', createElementAt(210, fixedLayer), true],
+      [
+        'in a scroll container on a fixed layer',
+        createElementAt(210, fixedContainer),
+        true,
       ],
     ] as const
     for (const [where, element, expected] of CASES) {
