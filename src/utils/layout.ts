@@ -3,7 +3,7 @@
  * them puts them.
  */
 
-import { isOnFixedLayer } from './fixed-layer'
+import { isOnFixedLayer } from './layout-internal'
 
 /** An x and y pair, in px. */
 export interface Point {

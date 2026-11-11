@@ -2,8 +2,8 @@
  * @fileoverview Waiting out the scroll that focusing an element brings.
  */
 
-import { isOnFixedLayer } from './fixed-layer'
 import { isInView } from './layout'
+import { isOnFixedLayer } from './layout-internal'
 import { SMOOTH_SCROLL_MAX_MS } from './scroll-timing'
 
 /** The nodes `node` sits inside, out to the document, counting a shadow root's host as one. */

@@ -1,6 +1,6 @@
 /**
- * @fileoverview Whether an element sits on a fixed layer, for the package's
- * own layout and scrolling code; not exported from the package.
+ * @fileoverview Layout helpers for the package's own code, which more than
+ * one module needs; not exported from the package.
  */
 
 /** Whether `el`, or an ancestor, is `position: fixed`, which keeps it still as the page scrolls. */
