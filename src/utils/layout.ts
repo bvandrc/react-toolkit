@@ -184,9 +184,9 @@ export const isInView = (el: HTMLElement) => {
  * The browser scrolls a focused element into view, in its scroll container and
  * the page, over many frames where `scroll-behavior` is smooth. One already in
  * view waits a frame, for the scroll event of any instant scroll that brought
- * it there; one out of view waits for `scrollend` from everything moving it,
- * or a second at most. A scroll elsewhere on the page, like a sticky bar
- * scrolling its own links along, ends without calling back.
+ * it there; one out of view waits a frame past `scrollend` from everything
+ * moving it, or a second at most. A scroll elsewhere on the page, like a
+ * sticky bar scrolling its own links along, ends without calling back.
  */
 export const onFocusScrollEnd = (
   element: HTMLElement,
@@ -197,19 +197,30 @@ export const onFocusScrollEnd = (
     return () => cancelAnimationFrame(frame)
   }
   // The scrolls under way that move the element: the page's, whose events
-  // fire on the document, and any container's around it.
+  // fire on the document, unless the element sits on a fixed layer, like a
+  // dialog, and any container's around it.
   const scrolling = new Set<EventTarget>()
+  const pageMovesElement = !isOnFixedLayer(element)
   /** Whether a scroll of `target` moves the element. */
-  const movesElement = (target: EventTarget | null) =>
-    target === document || (target instanceof Node && target.contains(element))
+  const movesElement = (target: EventTarget | null): target is EventTarget =>
+    target === document
+      ? pageMovesElement
+      : target instanceof Node && target.contains(element)
+  let frame: number | undefined
   const trackScroll = ({ target }: Event) => {
-    if (target && movesElement(target)) scrolling.add(target)
+    if (movesElement(target)) scrolling.add(target)
   }
   const endScroll = ({ target }: Event) => {
-    if (!(target && movesElement(target))) return
+    if (!movesElement(target)) return
     scrolling.delete(target)
-    // Nested scrolls end apart, so the element only stops once the last does.
-    if (scrolling.size === 0) finish()
+    if (scrolling.size > 0) return
+    // Nested scrolls end apart, and a browser can run them one after another,
+    // innermost first, so the next gets a frame to start before this calls
+    // back.
+    if (frame !== undefined) cancelAnimationFrame(frame)
+    frame = requestAnimationFrame(() => {
+      if (scrolling.size === 0) finish()
+    })
   }
   const finish = () => {
     cancel()
@@ -222,6 +233,7 @@ export const onFocusScrollEnd = (
   window.addEventListener('scrollend', endScroll, { capture: true })
   const cancel = () => {
     clearTimeout(timeout)
+    if (frame !== undefined) cancelAnimationFrame(frame)
     window.removeEventListener('scroll', trackScroll, { capture: true })
     window.removeEventListener('scrollend', endScroll, { capture: true })
   }

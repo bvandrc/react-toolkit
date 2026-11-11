@@ -429,6 +429,9 @@ describe('onFocusScrollEnd', () => {
     expect(callback).not.toHaveBeenCalled()
     endPageScroll()
     endPageScroll()
+    // A frame on, in case another scroll follows.
+    expect(callback).not.toHaveBeenCalled()
+    await waitForFrame()
     expect(callback).toHaveBeenCalledOnce()
   })
 
@@ -441,6 +444,7 @@ describe('onFocusScrollEnd', () => {
     expect(callback).not.toHaveBeenCalled()
     // A scroll container's `scrollend` doesn't bubble.
     container.dispatchEvent(new Event('scrollend'))
+    await waitForFrame()
     expect(callback).toHaveBeenCalledOnce()
   })
 
@@ -454,8 +458,10 @@ describe('onFocusScrollEnd', () => {
     document.dispatchEvent(new Event('scroll', { bubbles: true }))
     bar.dispatchEvent(new Event('scroll'))
     bar.dispatchEvent(new Event('scrollend'))
+    await waitForFrame()
     expect(callback).not.toHaveBeenCalled()
     endPageScroll()
+    await waitForFrame()
     expect(callback).toHaveBeenCalledOnce()
   })
 
@@ -478,11 +484,46 @@ describe('onFocusScrollEnd', () => {
       document.dispatchEvent(new Event('scroll', { bubbles: true }))
       container.dispatchEvent(new Event('scroll'))
       first()
+      await waitForFrame()
       expect(callback, order).not.toHaveBeenCalled()
       last()
+      await waitForFrame()
       expect(callback, order).toHaveBeenCalledOnce()
       container.remove()
     }
+  })
+
+  it("waits for the page's scroll that starts as the container's ends, as a browser running them in turn does", async () => {
+    const container = createScrollContainer()
+    const callback = vi.fn()
+    onFocusScrollEnd(createElementAt(2000, container), callback)
+
+    await waitForFrame()
+    container.dispatchEvent(new Event('scroll'))
+    container.dispatchEvent(new Event('scrollend'))
+    // The page's starts within the frame after.
+    document.dispatchEvent(new Event('scroll', { bubbles: true }))
+    await waitForFrame()
+    expect(callback).not.toHaveBeenCalled()
+    endPageScroll()
+    await waitForFrame()
+    expect(callback).toHaveBeenCalledOnce()
+  })
+
+  it("ignores the page's scroll for an element on a fixed layer, like a dialog, which it never moves", async () => {
+    const container = createScrollContainer()
+    container.style.position = 'fixed'
+    const callback = vi.fn()
+    onFocusScrollEnd(createElementAt(320, container), callback)
+
+    await waitForFrame()
+    document.dispatchEvent(new Event('scroll', { bubbles: true }))
+    endPageScroll()
+    await waitForFrame()
+    expect(callback).not.toHaveBeenCalled()
+    container.dispatchEvent(new Event('scrollend'))
+    await waitForFrame()
+    expect(callback).toHaveBeenCalledOnce()
   })
 
   it('calls back anyway a second on, for a scroll that never says it ended', () => {
@@ -507,6 +548,16 @@ describe('onFocusScrollEnd', () => {
 
     await vi.advanceTimersByTimeAsync(1000)
     endPageScroll()
+    expect(callback).not.toHaveBeenCalled()
+  })
+
+  it('never calls back once called off in the frame after the last scroll ends', async () => {
+    const callback = vi.fn()
+    const cancel = onFocusScrollEnd(createElementAt(2000), callback)
+
+    endPageScroll()
+    cancel()
+    await waitForFrame()
     expect(callback).not.toHaveBeenCalled()
   })
 })
