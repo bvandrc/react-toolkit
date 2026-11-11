@@ -32,12 +32,14 @@ const mockBelowTheFold = () =>
       DOMRect.fromRect({ x: 0, y: 2000, width: 100, height: 20 })
     )
 
-/** Ends the page's scroll, which bubbles up to the window, as a browser's does, and waits out the frame after it, when the open lands. */
+/** Ends the page's scroll, which bubbles up to the window, as a browser's does, and waits out the two frames after it, when the open lands. */
 const endScroll = () =>
   act(async () => {
     document.dispatchEvent(new Event('scrollend', { bubbles: true }))
     await new Promise((resolve) =>
-      requestAnimationFrame(() => setTimeout(resolve))
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => setTimeout(resolve))
+      )
     )
   })
 

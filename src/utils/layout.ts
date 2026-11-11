@@ -65,6 +65,18 @@ export const getVisibleBounds = (scrollParent: HTMLElement) => {
   }
 }
 
+/** Whether `node` is `ancestor` or inside it, counting a shadow root as inside its host. */
+const containsComposed = (ancestor: Node, node: Node) => {
+  for (
+    let current: Node | null = node;
+    current;
+    current = current instanceof ShadowRoot ? current.host : current.parentNode
+  ) {
+    if (current === ancestor) return true
+  }
+  return false
+}
+
 /** Whether `el`, or an ancestor, is `position: fixed`, which keeps it still as the page scrolls. */
 const isOnFixedLayer = (el: HTMLElement) => {
   // A fixed element inside a transformed or filtered ancestor scrolls with
@@ -184,9 +196,10 @@ export const isInView = (el: HTMLElement) => {
  * The browser scrolls a focused element into view, in its scroll container and
  * the page, over many frames where `scroll-behavior` is smooth. One already in
  * view waits a frame, for the scroll event of any instant scroll that brought
- * it there; one out of view waits a frame past `scrollend` from everything
- * moving it, or a second at most. A scroll elsewhere on the page, like a
- * sticky bar scrolling its own links along, ends without calling back.
+ * it there; one out of view waits for `scrollend` from everything moving it,
+ * and then for the frame after, in case another starts, or a second at most.
+ * A scroll elsewhere on the page, like a sticky bar scrolling its own links
+ * along, ends without calling back.
  */
 export const onFocusScrollEnd = (
   element: HTMLElement,
@@ -205,7 +218,7 @@ export const onFocusScrollEnd = (
   const movesElement = (target: EventTarget | null): target is EventTarget =>
     target === document
       ? pageMovesElement
-      : target instanceof Node && target.contains(element)
+      : target instanceof Node && containsComposed(target, element)
   let frame: number | undefined
   const trackScroll = ({ target }: Event) => {
     if (movesElement(target)) scrolling.add(target)
@@ -216,10 +229,15 @@ export const onFocusScrollEnd = (
     if (scrolling.size > 0) return
     // Nested scrolls end apart, and a browser can run them one after another,
     // innermost first, so the next gets a frame to start before this calls
-    // back.
+    // back. `scrollend` fires in a frame's scroll steps, ahead of its animation
+    // frame callbacks, so one frame request would still run in that frame; the
+    // second waits out the next frame's scroll steps, where the next scroll's
+    // first `scroll` fires.
     if (frame !== undefined) cancelAnimationFrame(frame)
     frame = requestAnimationFrame(() => {
-      if (scrolling.size === 0) finish()
+      frame = requestAnimationFrame(() => {
+        if (scrolling.size === 0) finish()
+      })
     })
   }
   const finish = () => {

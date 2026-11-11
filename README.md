@@ -50,7 +50,7 @@ Requires React 18 or 19. ESM only, with types included.
 | `getTargetScrollTop` | The `scrollTop` that would bring an element into view within its scroll container: at its top, centered, or as little as it takes, clear of the container's scroll padding. Leaves the page where it is for an element on a fixed layer, which its scroll doesn't move. |
 | `findScrollableAncestor` | The nearest ancestor whose own overflow scrolls, or the document's scrolling element when none does. |
 | `getVisibleBounds` | The visible top and bottom of a scroll container in viewport coordinates, counting only the on-screen part when that's the document itself, and leaving out its scroll padding, which marks what a sticky header or footer covers. |
-| `onFocusScrollEnd` | Calls back once the scroll that focusing an element brings has finished, in its scroll container or the page: once every scroll moving it has sent `scrollend`, ignoring scrolls elsewhere on the page, or a second on at most, for one out of view, or a frame on for one already in view. Returns a function that calls it off. Works outside React. |
+| `onFocusScrollEnd` | Calls back once the scroll that focusing an element brings has finished. For one out of view, that's once every scroll moving it, in a scroll container around it or the page, has sent `scrollend` and no other has started by the frame after, or a second on at most. The page's scroll doesn't count for one on a fixed layer, like a dialog, and scrolls elsewhere on the page never do. For one already in view, it's a frame on. Returns a function that calls it off. Works outside React. |
 
 ### Focus
 
