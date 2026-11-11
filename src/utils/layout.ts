@@ -184,7 +184,9 @@ export const isInView = (el: HTMLElement) => {
  * The browser scrolls a focused element into view, in its scroll container and
  * the page, over many frames where `scroll-behavior` is smooth. One already in
  * view waits a frame, for the scroll event of any instant scroll that brought
- * it there; one out of view waits for `scrollend`, or a second at most.
+ * it there; one out of view waits for `scrollend` from everything moving it,
+ * or a second at most. A scroll elsewhere on the page, like a sticky bar
+ * scrolling its own links along, ends without calling back.
  */
 export const onFocusScrollEnd = (
   element: HTMLElement,
@@ -194,17 +196,34 @@ export const onFocusScrollEnd = (
     const frame = requestAnimationFrame(callback)
     return () => cancelAnimationFrame(frame)
   }
+  // The scrolls under way that move the element: the page's, whose events
+  // fire on the document, and any container's around it.
+  const scrolling = new Set<EventTarget>()
+  /** Whether a scroll of `target` moves the element. */
+  const movesElement = (target: EventTarget | null) =>
+    target === document || (target instanceof Node && target.contains(element))
+  const trackScroll = ({ target }: Event) => {
+    if (target && movesElement(target)) scrolling.add(target)
+  }
+  const endScroll = ({ target }: Event) => {
+    if (!(target && movesElement(target))) return
+    scrolling.delete(target)
+    // Nested scrolls end apart, so the element only stops once the last does.
+    if (scrolling.size === 0) finish()
+  }
   const finish = () => {
     cancel()
     callback()
   }
   const timeout = setTimeout(finish, SMOOTH_SCROLL_MAX_MS)
-  // Captured, since a scroll container's `scrollend` doesn't bubble up to the
-  // window the way the page's own does.
-  window.addEventListener('scrollend', finish, { capture: true })
+  // Captured, since a scroll container's `scroll` and `scrollend` don't bubble
+  // up to the window the way the page's own do.
+  window.addEventListener('scroll', trackScroll, { capture: true })
+  window.addEventListener('scrollend', endScroll, { capture: true })
   const cancel = () => {
     clearTimeout(timeout)
-    window.removeEventListener('scrollend', finish, { capture: true })
+    window.removeEventListener('scroll', trackScroll, { capture: true })
+    window.removeEventListener('scrollend', endScroll, { capture: true })
   }
   return cancel
 }

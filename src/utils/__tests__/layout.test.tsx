@@ -444,6 +444,47 @@ describe('onFocusScrollEnd', () => {
     expect(callback).toHaveBeenCalledOnce()
   })
 
+  it("ignores a scroll ending elsewhere, as a sticky bar's own does, until the page's ends", async () => {
+    // Beside the element, not around it, so its scroll never moves it.
+    const bar = createScrollContainer()
+    const callback = vi.fn()
+    onFocusScrollEnd(createElementAt(2000), callback)
+
+    await waitForFrame()
+    document.dispatchEvent(new Event('scroll', { bubbles: true }))
+    bar.dispatchEvent(new Event('scroll'))
+    bar.dispatchEvent(new Event('scrollend'))
+    expect(callback).not.toHaveBeenCalled()
+    endPageScroll()
+    expect(callback).toHaveBeenCalledOnce()
+  })
+
+  it('waits for both the page and the container around the element to stop, whichever ends first', async () => {
+    const CASES = ['page first', 'container first'] as const
+    for (const order of CASES) {
+      const container = createScrollContainer()
+      const callback = vi.fn()
+      onFocusScrollEnd(createElementAt(2000, container), callback)
+      const ENDS = {
+        page: endPageScroll,
+        container: () => container.dispatchEvent(new Event('scrollend')),
+      }
+      const [first, last] =
+        order === 'page first'
+          ? [ENDS.page, ENDS.container]
+          : [ENDS.container, ENDS.page]
+
+      await waitForFrame()
+      document.dispatchEvent(new Event('scroll', { bubbles: true }))
+      container.dispatchEvent(new Event('scroll'))
+      first()
+      expect(callback, order).not.toHaveBeenCalled()
+      last()
+      expect(callback, order).toHaveBeenCalledOnce()
+      container.remove()
+    }
+  })
+
   it('calls back anyway a second on, for a scroll that never says it ended', () => {
     vi.useFakeTimers()
     const callback = vi.fn()
