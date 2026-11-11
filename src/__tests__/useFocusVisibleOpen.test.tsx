@@ -32,10 +32,15 @@ const mockBelowTheFold = () =>
       DOMRect.fromRect({ x: 0, y: 2000, width: 100, height: 20 })
     )
 
-/** Ends the page's scroll, which bubbles up to the window, as a browser's does. */
+/** Ends the page's scroll, which bubbles up to the window, as a browser's does, and waits out the two frames after it, when the open lands. */
 const endScroll = () =>
-  act(() => {
+  act(async () => {
     document.dispatchEvent(new Event('scrollend', { bubbles: true }))
+    await new Promise((resolve) =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => setTimeout(resolve))
+      )
+    )
   })
 
 /** What the trigger says: open or closed. */
@@ -61,7 +66,7 @@ describe('useFocusVisibleOpen', () => {
 
     await user.tab()
     expect(getTriggerState()).toBe('closed')
-    endScroll()
+    await endScroll()
     expect(getTriggerState()).toBe('open')
   })
 
@@ -73,13 +78,13 @@ describe('useFocusVisibleOpen', () => {
     // Tabbed past before the scroll to it ended.
     await user.tab()
     await user.tab()
-    endScroll()
+    await endScroll()
     expect(getTriggerState(), 'blurred').toBe('closed')
 
     // Closed, as Escape would, while still focused.
     await user.tab({ shift: true })
     await user.click(screen.getByTestId(T_IDS.CLOSE))
-    endScroll()
+    await endScroll()
     expect(getTriggerState(), 'closed').toBe('closed')
   })
 })

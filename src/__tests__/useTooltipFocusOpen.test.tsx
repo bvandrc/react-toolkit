@@ -74,10 +74,15 @@ const mockBelowTheFold = () =>
       DOMRect.fromRect({ x: 0, y: 2000, width: 100, height: 20 })
     )
 
-/** Ends the page's scroll, which bubbles up to the window, as a browser's does. */
+/** Ends the page's scroll, which bubbles up to the window, as a browser's does, and waits out the two frames after it, when the open lands. */
 const endScroll = () =>
-  act(() => {
+  act(async () => {
     document.dispatchEvent(new Event('scrollend', { bubbles: true }))
+    await new Promise((resolve) =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => setTimeout(resolve))
+      )
+    )
   })
 
 /** What the trigger says: open or closed. */
@@ -93,7 +98,7 @@ describe('useTooltipFocusOpen', () => {
     // A trigger left to open on focus would be open already, and then shut by
     // the scroll.
     expect(getTriggerState()).toBe('closed')
-    endScroll()
+    await endScroll()
     expect(getTriggerState()).toBe('open')
   })
 
