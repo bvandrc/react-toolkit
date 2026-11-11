@@ -65,16 +65,17 @@ export const getVisibleBounds = (scrollParent: HTMLElement) => {
   }
 }
 
-/** Whether `node` is `ancestor` or inside it, counting a shadow root as inside its host. */
-const containsComposed = (ancestor: Node, node: Node) => {
+/** The nodes `node` sits inside, out to the document, counting a shadow root's host as one. */
+const getComposedAncestors = (node: Node) => {
+  const ancestors = new Set<EventTarget>()
   for (
-    let current: Node | null = node;
+    let current: Node | null = node.parentNode;
     current;
     current = current instanceof ShadowRoot ? current.host : current.parentNode
   ) {
-    if (current === ancestor) return true
+    ancestors.add(current)
   }
-  return false
+  return ancestors
 }
 
 /** Whether `el`, or an ancestor, is `position: fixed`, which keeps it still as the page scrolls. */
@@ -214,11 +215,14 @@ export const onFocusScrollEnd = (
   // dialog, and any container's around it.
   const scrolling = new Set<EventTarget>()
   const pageMovesElement = !isOnFixedLayer(element)
+  // Taken once, so a scroll event costs a lookup, and a container still counts
+  // if a render moves the element out of it mid-scroll.
+  const ancestors = getComposedAncestors(element)
   /** Whether a scroll of `target` moves the element. */
   const movesElement = (target: EventTarget | null): target is EventTarget =>
     target === document
       ? pageMovesElement
-      : target instanceof Node && containsComposed(target, element)
+      : target !== null && ancestors.has(target)
   let frame: number | undefined
   const trackScroll = ({ target }: Event) => {
     if (movesElement(target)) scrolling.add(target)
@@ -227,12 +231,8 @@ export const onFocusScrollEnd = (
     if (!movesElement(target)) return
     scrolling.delete(target)
     if (scrolling.size > 0) return
-    // Nested scrolls end apart, and a browser can run them one after another,
-    // innermost first, so the next gets a frame to start before this calls
-    // back. `scrollend` fires in a frame's scroll steps, ahead of its animation
-    // frame callbacks, so one frame request would still run in that frame; the
-    // second waits out the next frame's scroll steps, where the next scroll's
-    // first `scroll` fires.
+    // A browser can run nested scrolls in turn, so wait out the next frame's
+    // scroll steps for one to start: `scrollend` fires ahead of this frame's.
     if (frame !== undefined) cancelAnimationFrame(frame)
     frame = requestAnimationFrame(() => {
       frame = requestAnimationFrame(() => {

@@ -408,17 +408,21 @@ describe('onFocusScrollEnd', () => {
   const endPageScroll = () =>
     document.dispatchEvent(new Event('scrollend', { bubbles: true }))
 
+  /** Resolves after the callbacks of the next `count` animation frames have run. */
+  const waitForFrames = (count: number) =>
+    new Promise((resolve) => {
+      const waitOne = (left: number) =>
+        requestAnimationFrame(() =>
+          left > 1 ? waitOne(left - 1) : setTimeout(resolve)
+        )
+      waitOne(count)
+    })
+
   /** Resolves after the next animation frame's callbacks have run. */
-  const waitForFrame = () =>
-    new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)))
+  const waitForFrame = () => waitForFrames(1)
 
   /** Resolves once the two frames waited out past the last scroll's end have run. */
-  const waitPastScrollEnd = () =>
-    new Promise((resolve) =>
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => setTimeout(resolve))
-      )
-    )
+  const waitPastScrollEnd = () => waitForFrames(2)
 
   it('calls back a frame on for an element already in view', async () => {
     const callback = vi.fn()
@@ -521,6 +525,38 @@ describe('onFocusScrollEnd', () => {
     expect(callback).toHaveBeenCalledOnce()
   })
 
+  it('ignores the scroll of the element itself, which never moves it', async () => {
+    const element = createElementAt(2000)
+    element.style.overflowY = 'auto'
+    const callback = vi.fn()
+    onFocusScrollEnd(element, callback)
+
+    await waitForFrame()
+    document.dispatchEvent(new Event('scroll', { bubbles: true }))
+    element.dispatchEvent(new Event('scroll'))
+    endPageScroll()
+    await waitPastScrollEnd()
+    expect(callback).toHaveBeenCalledOnce()
+  })
+
+  it('still counts the container the element sat in when called, once a render moves it out', async () => {
+    const container = createScrollContainer()
+    const element = createElementAt(2000, container)
+    const callback = vi.fn()
+    onFocusScrollEnd(element, callback)
+
+    await waitForFrame()
+    document.dispatchEvent(new Event('scroll', { bubbles: true }))
+    container.dispatchEvent(new Event('scroll'))
+    element.remove()
+    endPageScroll()
+    await waitPastScrollEnd()
+    expect(callback).not.toHaveBeenCalled()
+    container.dispatchEvent(new Event('scrollend'))
+    await waitPastScrollEnd()
+    expect(callback).toHaveBeenCalledOnce()
+  })
+
   it("ignores the page's scroll for an element on a fixed layer, like a dialog, which it never moves", async () => {
     const container = createScrollContainer()
     container.style.position = 'fixed'
@@ -584,8 +620,10 @@ describe('onFocusScrollEnd', () => {
   })
 
   it('never calls back once called off while waiting out the frames after the last scroll ends', async () => {
-    // Called off before the first of the two frames, and between them.
-    const FRAMES_IN = [0, 1]
+    const FRAMES_IN = [
+      0, // Before the first of the two frames.
+      1, // Between them, once the second is requested.
+    ]
     for (const framesIn of FRAMES_IN) {
       const callback = vi.fn()
       const cancel = onFocusScrollEnd(createElementAt(2000), callback)
