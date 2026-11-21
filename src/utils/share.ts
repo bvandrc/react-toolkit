@@ -31,7 +31,11 @@ export const shareFiles = async (
   }
 }
 
-/** A `mailto:` link, with its subject and body filled in where given. */
+/**
+ * A `mailto:` link, with its subject and body filled in where given.
+ *
+ * Spaces are encoded as `%20`, not `+`, which mail clients show literally.
+ */
 export const buildMailtoHref = ({
   to,
   ...fields

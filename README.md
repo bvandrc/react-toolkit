@@ -6,7 +6,7 @@ Generic React hooks and helpers for UI behavior, such as press-and-hold, scrolli
 npm install @bvandrc/react-toolkit
 ```
 
-Requires React 18 or 19. ESM only, with types included. Each export's JSDoc covers its options and edge cases; the tables below are an index.
+Requires React 18 or 19. ESM only, with types included. Each export's JSDoc, shipped in the `dist/*.d.mts` types, covers its options and edge cases; the tables below are an index.
 
 ## Hooks and Helpers
 
