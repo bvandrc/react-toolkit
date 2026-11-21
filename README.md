@@ -26,7 +26,7 @@ Requires React 18 or 19. ESM only, with types included. Each export's JSDoc cove
 
 | Export | What it does |
 | --- | --- |
-| `useShrinkToFit` | How many steps down a set of text sizes a line needs to stop wrapping, re-measured as its width changes or fonts load. |
+| `useShrinkToFit` | How many steps down a set of text sizes a line needs to stop wrapping, re-measured as its width changes or fonts load. The text itself must not wrap (`white-space: nowrap`). |
 | `getContentHeight` | An element's height inside its padding and border. |
 | `isInView` | Whether all of an element is on screen, clear of its scroll container's scroll padding. |
 | `getRoomAround` | How much of the screen is free above and below an element, not counting the on-screen keyboard. |
@@ -45,7 +45,7 @@ Requires React 18 or 19. ESM only, with types included. Each export's JSDoc cove
 | --- | --- |
 | `useScrollIntoView` | `scrollIntoView` within an element's own scroll container: cancelable, held against scroll anchoring, and clear of its scroll padding. |
 | `useScrollOnFocus` | Scrolls a focused element into view and keeps it there as it resizes. On touch, restores the scroll the on-screen keyboard leaves behind. |
-| `useMakeRoomForPopover` | Scrolls a popover's trigger so a popover too tall to fit above or below it does. |
+| `useMakeRoomForPopover` | When a popover mounts too tall to fit above or below its trigger, scrolls the trigger's scroll area so it does. |
 | `getTargetScrollTop` | The `scrollTop` that brings an element into view within its scroll container. |
 | `findScrollableAncestor` | The nearest ancestor that scrolls, or the document's scrolling element. |
 | `getVisibleBounds` | The visible top and bottom of a scroll container, in viewport coordinates, minus its scroll padding. |
@@ -61,7 +61,7 @@ The scrolling hooks jump by default; pass `scrollBehavior: 'smooth'` to animate,
 | `useFocusReturn` | Returns focus to what had it when a dialog opened. Fits a Radix dialog's `onCloseAutoFocus`. |
 | `useTouchKeepsFocus` | Keeps focus in a text field while a menu or popover opened by touch is used, so the on-screen keyboard stays up. Fits Radix's `onOpenAutoFocus`. |
 | `useFocusVisibleOpen` | Open state for something keyboard focus opens, like a tooltip, waiting until the scroll that focus brings has finished. |
-| `useTooltipFocusOpen` | `useFocusVisibleOpen` fitted to a Radix tooltip, replacing Radix's own focus open, which a scrolled-to trigger loses. |
+| `useTooltipFocusOpen` | `useFocusVisibleOpen` fitted to a Radix tooltip, replacing Radix's own focus open, which a scrolled-to trigger loses. Takes the tooltip's other open state, like `usePressToggle`'s. |
 | `blurFocusedTextInput` | Blurs the focused text field, closing the on-screen keyboard. |
 
 ### Press and Toggle
@@ -70,7 +70,7 @@ The scrolling hooks jump by default; pass `scrollBehavior: 'smooth'` to animate,
 | --- | --- |
 | `useAfterPress` | Runs a change once any press in progress has finished, so a layout shift doesn't move a control out from under its click. |
 | `usePressHold` | Detects a press held in place, for a long-press action. |
-| `usePressToggle` | Active state a tap, click, Enter, or Space toggles, for something hover or focus can also open, like a tooltip. |
+| `usePressToggle` | Active state a tap, click, Enter, or Space toggles, for something hover or focus can also open, like a tooltip. For a trigger inside a link or control, pass `pointerTypes` (like `['touch']`) so only those presses toggle. |
 
 ### Input
 
@@ -118,7 +118,7 @@ From `@bvandrc/react-toolkit/gestures`, with [`@use-gesture/react`](https://www.
 | `shareFiles` | Opens the native share sheet with files, resolving to whether they were shared, cancelled, or need a fallback. |
 | `buildMailtoHref` | A `mailto:` link with its subject and body filled in. |
 | `createRequiredContext` | A context and a hook that reads it, throwing outside its provider so there's no `null` check. |
-| `createDeviceId` | A per-install id in `localStorage`, which tabs opening at once agree on. |
+| `createDeviceId` | A per-install id in `localStorage`, which tabs opening at once agree on, with a setter to carry it across a `localStorage.clear()`. |
 | `TAILWIND_BREAKPOINTS` | Tailwind's default breakpoints in px. |
 
 ## Test Support
@@ -126,8 +126,8 @@ From `@bvandrc/react-toolkit/gestures`, with [`@use-gesture/react`](https://www.
 `@bvandrc/react-toolkit/test-support` fills in the browser APIs and layout that happy-dom and jsdom lack:
 
 - `mockVisualViewport`, `mockResizeObserver`, `mockMatchMedia`, `mockMobile`, and `mockTouchDevice`: Vitest mocks, which need `vitest` and `@testing-library/react` (optional peer dependencies).
-- `mockScrollLayout`: lays an element out in its scroll container, for testing code that scrolls to it. Smooth `scrollTo` calls are recorded but never run.
-- `installTabApis`: Node's own Web Locks and `BroadcastChannel`, for testing `useActiveTab`. Needs Node 24 or later.
+- `mockScrollLayout`: a Vitest mock that lays an element out in its scroll container, for testing code that scrolls to it. Smooth `scrollTo` calls are recorded but never run.
+- `installTabApis`: Node's own Web Locks and `BroadcastChannel`, for testing code that coordinates tabs, like `useActiveTab`. Needs Node 24 or later.
 
 ## License
 
