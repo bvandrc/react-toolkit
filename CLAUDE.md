@@ -31,6 +31,9 @@ Follow all of these. `.github/workflows/sync-conventions.yml` syncs them from ht
   - A dependency ships to every consumer, so prefer a local copy of a small helper over a new package.
   - A package only tests use, like `ts-extras`, is a devDependency and ships nothing.
 - **Public API**: `src/index.ts` and `src/test-support/index.ts`. Removing or renaming an export from either is breaking, so it needs a major bump.
+- **README is an index; JSDoc holds the details**:
+  - Each README row says what the export is for, plus any requirement that breaks it when missed (like `useShrinkToFit`'s text not wrapping). That's enough to pick it and use it safely.
+  - Options, edge cases, timing, and examples go in its JSDoc, which ships in the `dist/*.d.mts` types, where a consumer's editor or agent reads it.
 - **Test support ships**: `src/test-support/` is published for consumers' tests, so it imports `vi` from `vitest` rather than relying on globals a consumer may not turn on.
 - **`@/*` is `src/*`**:
   - Use it for any import that would climb out of a folder (`../`); keep same-folder siblings relative.
