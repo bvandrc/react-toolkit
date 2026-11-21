@@ -13,11 +13,11 @@ export interface MockVisualViewportState {
 }
 
 /**
- * Stubs `window.visualViewport` with `initial` (both default to 0), returning
- * `change`, which updates it and fires `eventName` the way the browser would.
+ * Stubs `window.visualViewport` with `initial`, returning `change`, which
+ * updates it and fires `eventName` the way the browser would.
  *
- * Give it a `height` where the layout helpers measure: at 0, they count all of
- * the page as behind the on-screen keyboard.
+ * Starts as the whole window with no keyboard open: `offsetTop` 0, and
+ * `height` the window's.
  *
  * @example
  * ```ts
@@ -33,7 +33,7 @@ export const mockVisualViewport = (
 ) => {
   const viewport = Object.assign(new EventTarget(), {
     offsetTop: 0,
-    height: 0,
+    height: window.innerHeight,
     ...initial,
   })
   vi.stubGlobal('visualViewport', viewport)
