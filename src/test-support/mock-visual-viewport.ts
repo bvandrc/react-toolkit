@@ -13,15 +13,19 @@ export interface MockVisualViewportState {
 }
 
 /**
- * Stubs `window.visualViewport` with `initial` (both default to 0), returning
- * `change`, which updates it and fires `eventName` the way the browser would.
+ * Stubs `window.visualViewport` with `initial`, returning `change`, which
+ * updates it and fires `eventName` the way the browser would.
+ *
+ * Starts as the whole window with no keyboard open: `offsetTop` 0, and
+ * `height` the window's.
  *
  * @example
  * ```ts
  * const viewport = mockVisualViewport({ height: 800 })
  *
  * // The on-screen keyboard opens.
- * act(() => viewport.change({ height: 500 }, 'resize'))
+ * // `change` runs in `act` itself.
+ * viewport.change({ height: 500 }, 'resize')
  * ```
  */
 export const mockVisualViewport = (
@@ -29,7 +33,7 @@ export const mockVisualViewport = (
 ) => {
   const viewport = Object.assign(new EventTarget(), {
     offsetTop: 0,
-    height: 0,
+    height: window.innerHeight,
     ...initial,
   })
   vi.stubGlobal('visualViewport', viewport)

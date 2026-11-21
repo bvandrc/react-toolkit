@@ -121,6 +121,40 @@ describe('getVisibleBounds', () => {
       bottom: 600,
     })
   })
+
+  it('leaves out what the keyboard covers, which shrinks only the visual viewport', () => {
+    vi.stubGlobal('innerHeight', 600)
+    // Scrolled 20px down the page, with a keyboard covering all but 300px.
+    mockVisualViewport({ offsetTop: 20, height: 300 })
+    const container = document.createElement('div')
+    document.body.append(container)
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ y: 200, height: 200 })
+    )
+    vi.spyOn(container, 'clientHeight', 'get').mockReturnValue(200)
+
+    // Only the bottom moves: the tops are where they'd be without a keyboard.
+    expect(getVisibleBounds(container), 'container').toEqual({
+      top: 200,
+      bottom: 320,
+    })
+    expect(
+      getVisibleBounds(document.scrollingElement as HTMLElement),
+      'window'
+    ).toEqual({ top: 0, bottom: 320 })
+  })
+
+  it('leaves a scroll container that ends above the keyboard as it is', () => {
+    mockVisualViewport({ height: 500 })
+    const container = document.createElement('div')
+    document.body.append(container)
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ y: 200, height: 200 })
+    )
+    vi.spyOn(container, 'clientHeight', 'get').mockReturnValue(200)
+
+    expect(getVisibleBounds(container)).toEqual({ top: 200, bottom: 400 })
+  })
 })
 
 describe('getTargetScrollTop', () => {
