@@ -1,12 +1,12 @@
 # @bvandrc/react-toolkit
 
-Generic React hooks and helpers for UI behavior, such as press-and-hold, scrolling into view, the visual viewport and on-screen keyboard, focus handoff and return, and more.
+Generic React hooks and helpers for UI behavior, such as press-and-hold, scrolling into view, the on-screen keyboard, and focus handoff.
 
 ```bash
 npm install @bvandrc/react-toolkit
 ```
 
-Requires React 18 or 19. ESM only, with types included.
+Requires React 18 or 19. ESM only, with types included. Each export's JSDoc covers its options and edge cases; the tables below are an index.
 
 ## Hooks and Helpers
 
@@ -15,11 +15,10 @@ Requires React 18 or 19. ESM only, with types included.
 | Export | What it does |
 | --- | --- |
 | `useIsMobile` | Whether the viewport is narrower than a breakpoint (Tailwind's `md` by default). |
-| `getBelowBreakpointQuery` | The media query `useIsMobile` matches for a breakpoint, stopping 1px short so it never overlaps a `min-width` style at the same width. |
-| `isTouchDevice` | Whether the primary input is touch, based on the `(pointer: coarse)` media query. |
-| `detectDevice` | Whether the page is running on iOS, Android, or desktop, based on `navigator.userAgent`. |
-| `useVisualViewportPin` | Keeps a fixed, full-screen element, like a sheet, matched to `window.visualViewport`, so it stays on screen and scrollable while the on-screen keyboard is open or the page is pinch-zoomed. |
-| `useVisualViewportListener` | Calls a handler on each visual viewport `resize` or `scroll`, for as long as the component is mounted. |
+| `isTouchDevice` | Whether the primary input is touch (`pointer: coarse`). |
+| `detectDevice` | Whether the page is running on iOS, Android, or desktop. |
+| `useVisualViewportPin` | Keeps a fixed, full-screen element, like a sheet, matched to the visual viewport, so it stays on screen while the on-screen keyboard is open or the page is zoomed. |
+| `useVisualViewportListener` | Calls a handler on each visual viewport `resize` or `scroll` while mounted. |
 <!-- Not really that important / useful compared to how much it takes to explain -->
 <!-- | `getBelowBreakpointQuery` | The media query `useIsMobile` matches for a breakpoint, stopping 1px short so it never overlaps a `min-width` style at the same width. | -->
 
@@ -27,72 +26,74 @@ Requires React 18 or 19. ESM only, with types included.
 
 | Export | What it does |
 | --- | --- |
-| `useShrinkToFit` | How many steps down through a set of text sizes, largest first, keep a line from wrapping: the fewest that do, or none where no step does. Measures before paint, and again when the line's width or the number of sizes changes, or a font loads. The text must not wrap itself. |
-| `getContentHeight` | How tall an element's content is, inside its padding and border. |
-| `isInView` | Whether all of an element is on screen: inside the window, and inside the visible part of its scroll container, neither counting what their scroll padding marks off. The page's scroll padding counts only for an element that scrolls with the page, not one on a fixed layer like a dialog. |
-| `getRoomAround` | How much of the screen is free above and below an element, not counting what an open on-screen keyboard covers. |
+| `useShrinkToFit` | How many steps down a set of text sizes a line needs to stop wrapping, re-measured as its width changes or fonts load. |
+| `getContentHeight` | An element's height inside its padding and border. |
+| `isInView` | Whether all of an element is on screen, clear of its scroll container's scroll padding. |
+| `getRoomAround` | How much of the screen is free above and below an element, not counting the on-screen keyboard. |
 
 ### Page Lifecycle
 
 | Export | What it does |
 | --- | --- |
 | `useAppVisibility` | Calls `onVisible` or `onHidden` as the document's visibility changes. |
-| `useIsOnline` | Whether the browser reports a network connection, re-rendering as it goes offline and back. Takes an optional `onChange` for each switch. |
-| `onAppLeave` | Calls back when the page is hidden or unloading, including when a phone kills a backgrounded app without `pagehide` ever firing. Works outside React. |
+| `useIsOnline` | Whether the browser reports a network connection, re-rendering as it changes. |
+| `onAppLeave` | Calls back when the page is hidden or unloading, including when a phone kills a backgrounded app without `pagehide`. Works outside React. |
 
 ### Scrolling
 
 | Export | What it does |
 | --- | --- |
-| `useScrollIntoView` | `scrollIntoView` within an element's own scroll container, held against scroll anchoring, and cancelable. Keeps clear of the container's scroll padding, such as a sticky header's height, as the browser's own does. Jumps by default; pass `smooth` to animate it, except for users who prefer reduced motion. `onScrollEnd` is called once it lands. |
-| `useScrollOnFocus` | Handlers that scroll a focused element into view and keep it there as it resizes. On touch devices, also restores the scroll position the on-screen keyboard leaves behind when it closes. Jumps by default; pass `smooth` to animate it. |
-| `useMakeRoomForPopover` | When a popover mounts too tall to fit above or below its trigger, scrolls the trigger's scroll area so it does. Jumps by default; pass `smooth` to animate it. |
-| `getTargetScrollTop` | The `scrollTop` that would bring an element into view within its scroll container: at its top, centered, or as little as it takes, clear of the container's scroll padding. Leaves the page where it is for an element on a fixed layer, which its scroll doesn't move. |
-| `findScrollableAncestor` | The nearest ancestor whose own overflow scrolls, or the document's scrolling element when none does. |
-| `getVisibleBounds` | The visible top and bottom of a scroll container in viewport coordinates, counting only the on-screen part when that's the document itself, and leaving out its scroll padding, which marks what a sticky header or footer covers. |
-| `onFocusScrollEnd` | Calls back once the scroll that focusing an element brings has finished. For one out of view, that's once every scroll moving it, in a scroll container around it or the page, has sent `scrollend` and no other has started by the frame after, or a second on at most. The page's scroll doesn't count for one on a fixed layer, like a dialog, and scrolls elsewhere on the page never do. For one already in view, it's a frame on. Returns a function that calls it off. Works outside React. |
+| `useScrollIntoView` | `scrollIntoView` within an element's own scroll container: cancelable, held against scroll anchoring, and clear of its scroll padding. |
+| `useScrollOnFocus` | Scrolls a focused element into view and keeps it there as it resizes. On touch, restores the scroll the on-screen keyboard leaves behind. |
+| `useMakeRoomForPopover` | Scrolls a popover's trigger so a popover too tall to fit above or below it does. |
+| `getTargetScrollTop` | The `scrollTop` that brings an element into view within its scroll container. |
+| `findScrollableAncestor` | The nearest ancestor that scrolls, or the document's scrolling element. |
+| `getVisibleBounds` | The visible top and bottom of a scroll container, in viewport coordinates, minus its scroll padding. |
+| `onFocusScrollEnd` | Calls back once the scroll that focusing an element brings has finished. Works outside React. |
+
+The scrolling hooks jump by default; pass `scrollBehavior: 'smooth'` to animate, except for users who prefer reduced motion.
 
 ### Focus
 
 | Export | What it does |
 | --- | --- |
-| `useFocusHandoff` | Hands focus to a target when the focused element inside a container unmounts, so focus doesn't fall to `<body>`. |
-| `useFocusReturn` | Remembers what had focus when a dialog opened, and returns focus to it on close. Plugs straight into a Radix dialog's `onCloseAutoFocus`. |
-| `useTouchKeepsFocus` | Props for a menu or popover's trigger and content that leave focus in a text field when it's opened by touch, so the on-screen keyboard stays open through the open and each tap on an item. Plugs straight into a Radix menu or popover's `onOpenAutoFocus`. |
-| `useFocusVisibleOpen` | Open state for something focus opens, like a tooltip, with focus and blur handlers to spread onto its trigger. Only focus the browser would ring opens it, keyboard focus say, the same as Radix's own triggers, and only once the scroll that focus brings has finished, since Radix closes a tooltip whose trigger scrolls. A blur or a close before then calls it off. |
-| `useTooltipFocusOpen` | `useFocusVisibleOpen` fitted to a Radix tooltip, in place of Radix's own open on focus, which a trigger out of view loses to the scroll that focus brings. Takes the tooltip's other open state, like `usePressToggle`'s, or holds it itself for one only hover opens, and returns the `open` and `onOpenChange` for its root, the focus handlers for its trigger, which leave the focus event uncancelled for the trigger's other handlers, and `dropFocusOpen` for a press that takes over from focus. |
-| `blurFocusedTextInput` | Blurs the focused text `input`, `textarea`, or `contenteditable`, closing the on-screen keyboard, and returns whether there was one to blur. |
+| `useFocusHandoff` | Hands focus to a target when the focused element inside a container unmounts, so it doesn't fall to `<body>`. |
+| `useFocusReturn` | Returns focus to what had it when a dialog opened. Fits a Radix dialog's `onCloseAutoFocus`. |
+| `useTouchKeepsFocus` | Keeps focus in a text field while a menu or popover opened by touch is used, so the on-screen keyboard stays up. Fits Radix's `onOpenAutoFocus`. |
+| `useFocusVisibleOpen` | Open state for something keyboard focus opens, like a tooltip, waiting until the scroll that focus brings has finished. |
+| `useTooltipFocusOpen` | `useFocusVisibleOpen` fitted to a Radix tooltip, replacing Radix's own focus open, which a scrolled-to trigger loses. |
+| `blurFocusedTextInput` | Blurs the focused text field, closing the on-screen keyboard. |
 
 ### Press and Toggle
 
 | Export | What it does |
 | --- | --- |
-| `useAfterPress` | `run(fn)` calls `fn` straight away, or once the press under way anywhere on the page has finished, for a change that moves things, like closing a toolbar as focus leaves, which would otherwise move the pressed control out from under its click. A press finishes with the click it ends in, which a tap only sends after the finger lifts; with `pointercancel`, as when a touch turns into a scroll; or half a second after a release that never clicks. `cancel()` drops a call still waiting. |
-| `usePressHold` | Detects a press held in place, for a long-press action. Cancels on movement, lift, the OS taking the touch over, or unmount. |
-| `usePressToggle` | Active state for something hover or focus can also open, like a tooltip, that a tap, click, Enter, Space, or a screen reader's activation toggles. One that hover or focus opened stays open on the first click or key, and a tap, which can't have hovered, turns it off. Pass `pointerTypes`, like `['touch']`, for a trigger inside a link or control: only those pointers' presses toggle, and their clicks are cancelled, leaving every other click and key to what's around it. `cancelClick` sets whether toggled clicks are cancelled either way. |
+| `useAfterPress` | Runs a change once any press in progress has finished, so a layout shift doesn't move a control out from under its click. |
+| `usePressHold` | Detects a press held in place, for a long-press action. |
+| `usePressToggle` | Active state a tap, click, Enter, or Space toggles, for something hover or focus can also open, like a tooltip. |
 
 ### Input
 
 | Export | What it does |
 | --- | --- |
-| `clickOnActivationKey` | A keydown handler that clicks its element on Enter or Space, so a non-button element activates like a button does. |
-| `isActivationKey` | Whether a key activates a button: Enter or Space. |
-| `nativeActivationKeys` | The keys the browser already clicks an element on by itself, such as Enter for a link and Space for a checkbox. |
-| `isTextEntry` | Whether an element takes typed text: an `<input>`, a `<textarea>`, or `contenteditable`. |
-| `isComposing` | Whether a keydown belongs to an IME composition, such as the Enter that commits a candidate, including Safari's case that reports it as not composing. |
-| `isPrimaryPress` | Whether a pointer event is the primary pointer's main button: the first finger down, or a left click. |
-| `clientPointOf` | Where a mouse or touch event's pointer is in the viewport, as a `Point`: the first finger for a touch, or `null` once none is down. Takes React's events and the DOM's alike. |
+| `clickOnActivationKey` | A keydown handler that clicks its element on Enter or Space, so a non-button activates like a button. |
+| `isActivationKey` | Whether a key is Enter or Space. |
+| `nativeActivationKeys` | The keys the browser already clicks an element on, such as Enter for a link and Space for a checkbox. |
+| `isTextEntry` | Whether an element takes typed text. |
+| `isComposing` | Whether a keydown belongs to an IME composition, including Safari's misreported case. |
+| `isPrimaryPress` | Whether a pointer event is the first finger down or a left click. |
+| `clientPointOf` | A mouse or touch event's pointer position in the viewport. |
 
 ### State and Timing
 
 | Export | What it does |
 | --- | --- |
-| `useMaybeControlled` | A value that's controlled when the caller passes one, and managed internally when they don't. |
-| `useStateRef` | `useState`, plus a ref that always holds the latest value set, for handlers built once. |
-| `useTimer` | A timeout started from a handler rather than on render, replaced by the next `start` and cleared on unmount. |
-| `useHasPassed` | Whether a date has passed, re-rendering at the moment it does with one timer rather than polling. |
-| `useDebouncedPersist` | Persists a value to `localStorage`, debounced, and flushed when the app is hidden or closed so nothing is lost to the debounce window. |
-| `createLazyLoad` | Makes a hook for something loaded on demand, like code and data kept out of the first load, which every component using it shares: the value once loaded, whether loading failed and why, and a `prefetch` to start it, say as a pointer arrives. Loads once, however many components prefetch, and every mounted component sees the result at once. |
+| `useMaybeControlled` | A value that's controlled when the caller passes one, and internal when they don't. |
+| `useStateRef` | `useState`, plus a ref that always holds the latest value. |
+| `useTimer` | A timeout started from a handler, replaced by the next `start` and cleared on unmount. |
+| `useHasPassed` | Whether a date has passed, re-rendering the moment it does. |
+| `useDebouncedPersist` | Persists a value to `localStorage`, debounced, and flushed when the app is hidden or closed. |
+| `createLazyLoad` | Makes a hook for something loaded on demand and shared across components, with a `prefetch` to start it early. |
 
 ### Tabs
 
@@ -108,36 +109,25 @@ From `@bvandrc/react-toolkit/gestures`, with [`@use-gesture/react`](https://www.
 
 | Export | What it does |
 | --- | --- |
-| `useZoomPanGestures` | Zooms and pans whatever an element shows along one axis. A wheel or a pinch zooms around the value under it, and a mouse's drag, a sideways scroll, or two fingers moved together pans. Takes the wheel and the pinch from the page while there's an `onZoom`, leaves a finger's drag to the element's own handlers, and returns a ref that's true while it takes a pinch. Give the element `touch-action: none`, or a touchscreen pinches and scrolls the page as well. |
+| `useZoomPanGestures` | Zooms and pans an element's content along one axis, with the wheel, a pinch, or a drag. Give the element `touch-action: none`. |
 
-## Other Helpers
+### Other Helpers
 
-Plain functions, usable outside React:
-
-<table>
-  <thead>
-    <tr><th>Export</th><th>What it does</th></tr>
-  </thead>
-  <tbody>
-    <tr><td colspan="2"><b><i>Sharing</i></b></td></tr>
-    <tr><td><code>shareFiles</code></td><td>Opens the native share sheet with files, and resolves to whether they were shared, the user cancelled, or the caller should fall back.</td></tr>
-    <tr><td><code>buildMailtoHref</code></td><td>A <code>mailto:</code> link with its subject and body filled in, with spaces encoded so mail clients don't show them as <code>+</code>.</td></tr>
-    <tr><td colspan="2"><b><i>Context</i></b></td></tr>
-    <tr><td><code>createRequiredContext</code></td><td>A context paired with the hook that reads it, which throws outside its provider so callers get the value without a <code>null</code> check.</td></tr>
-    <tr><td colspan="2"><b><i>Device identity</i></b></td></tr>
-    <tr><td><code>createDeviceId</code></td><td>A per-install id kept in <code>localStorage</code>, minted on first read under a Web Lock so tabs opening at once agree on one, with a setter that can be used to carry it across a wholesale <code>localStorage.clear()</code>.</td></tr>
-    <tr><td colspan="2"><b><i>Constants</i></b></td></tr>
-    <tr><td><code>TAILWIND_BREAKPOINTS</code></td><td>Tailwind's default breakpoints in px, each the <code>min-width</code> its prefix applies from.</td></tr>
-  </tbody>
-</table>
+| Export | What it does |
+| --- | --- |
+| `shareFiles` | Opens the native share sheet with files, resolving to whether they were shared, cancelled, or need a fallback. |
+| `buildMailtoHref` | A `mailto:` link with its subject and body filled in. |
+| `createRequiredContext` | A context and a hook that reads it, throwing outside its provider so there's no `null` check. |
+| `createDeviceId` | A per-install id in `localStorage`, which tabs opening at once agree on. |
+| `TAILWIND_BREAKPOINTS` | Tailwind's default breakpoints in px. |
 
 ## Test Support
 
-`@bvandrc/react-toolkit/test-support` fills in the browser APIs and layout these hooks read, which test DOMs like happy-dom and jsdom don't fully provide:
+`@bvandrc/react-toolkit/test-support` fills in the browser APIs and layout that happy-dom and jsdom lack:
 
 - `mockVisualViewport`, `mockResizeObserver`, `mockMatchMedia`, `mockMobile`, and `mockTouchDevice`: Vitest mocks, which need `vitest` and `@testing-library/react` (optional peer dependencies).
-- `mockScrollLayout`: a Vitest mock that lays an element out in its scroll container, for testing code that scrolls to it, like `useScrollIntoView` and `useScrollOnFocus`. Smooth `scrollTo` calls are recorded but never run.
-- `installTabApis`: Node's own Web Locks and `BroadcastChannel`, for testing code that coordinates tabs, like `useActiveTab`. Needs Node 24 or later.
+- `mockScrollLayout`: lays an element out in its scroll container, for testing code that scrolls to it. Smooth `scrollTo` calls are recorded but never run.
+- `installTabApis`: Node's own Web Locks and `BroadcastChannel`, for testing `useActiveTab`. Needs Node 24 or later.
 
 ## License
 
