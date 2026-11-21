@@ -23,16 +23,16 @@ import { onFocusScrollEnd } from './utils'
  * const { open, focusProps } = useFocusVisibleOpen()
  * const hintId = useId()
  *
+ * // The hint stays rendered while closed, hidden, so the button keeps its
+ * // description.
  * return (
  *   <>
  *     <button type="button" {...focusProps} aria-describedby={hintId}>
  *       Save
  *     </button>
- *     {open && (
- *       <div role="tooltip" id={hintId}>
- *         Ctrl+S
- *       </div>
- *     )}
+ *     <div role="tooltip" id={hintId} hidden={!open}>
+ *       Ctrl+S
+ *     </div>
  *   </>
  * )
  * ```

@@ -35,6 +35,7 @@ export interface MockScrollLayoutState {
  *   visibleHeight: 400,
  * })
  *
+ * // The button smoothly scrolls the row to the top of the list.
  * await user.click(screen.getByTestId(SELECTORS.LIST.JUMP_TO_ROW_BTN))
  *
  * // A smooth scroll is recorded rather than run; an instant one sets `scrollTop`.

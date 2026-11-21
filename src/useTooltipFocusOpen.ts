@@ -33,7 +33,8 @@ import { useMaybeControlled } from './useMaybeControlled'
  *
  * @example
  * ```tsx
- * // A tooltip only hover and focus open, so the hook holds its state.
+ * // A tooltip only hover and focus open, so the hook holds its state. Like
+ * // any Radix tooltip, it needs a `Tooltip.Provider` above it.
  * const { rootProps, focusProps } = useTooltipFocusOpen()
  *
  * return (
@@ -60,6 +61,7 @@ import { useMaybeControlled } from './useMaybeControlled'
  * return (
  *   <Tooltip.Root {...rootProps}>
  *     <Tooltip.Trigger
+ *       aria-label="More info"
  *       {...triggerProps}
  *       {...focusProps}
  *       onClick={(event) => {

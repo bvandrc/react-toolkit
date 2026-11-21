@@ -79,9 +79,10 @@ export interface ScrollIntoViewCallOptions {
  * ```tsx
  * const { scrollIntoView } = useScrollIntoView({ scrollBehavior: 'smooth' })
  *
- * // Bring a search result to the top of its list, then focus it once it lands.
- * const reveal = (row: HTMLElement) =>
- *   scrollIntoView(row, 'start', { onScrollEnd: () => row.focus() })
+ * // Bring a search result's link to the top of its list, then focus it once
+ * // it lands.
+ * const reveal = (link: HTMLAnchorElement) =>
+ *   scrollIntoView(link, 'start', { onScrollEnd: () => link.focus() })
  * ```
  */
 export const useScrollIntoView = ({

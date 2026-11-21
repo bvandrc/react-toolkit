@@ -21,8 +21,11 @@ import { createContext, useContext } from 'react'
  *   </SessionContext.Provider>
  * )
  *
- * // A `Session`, never `null`; throws outside `SessionProvider`.
- * const session = useSession()
+ * const Avatar = () => {
+ *   // A `Session`, never `null`; throws outside `SessionProvider`.
+ *   const session = useSession()
+ *   return <img src={session.avatarUrl} alt="" />
+ * }
  * ```
  */
 export const createRequiredContext = <T>(providerName: string) => {

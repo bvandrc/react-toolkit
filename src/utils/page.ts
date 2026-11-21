@@ -14,7 +14,7 @@
  * @example
  * ```tsx
  * // The unsubscribe it returns doubles as the effect's cleanup.
- * useEffect(() => onAppLeave(flushDrafts), [])
+ * useEffect(() => onAppLeave(flushDrafts), [flushDrafts])
  * ```
  */
 export const onAppLeave = (callback: () => void) => {
