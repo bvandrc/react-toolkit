@@ -35,6 +35,30 @@ export type ZoomPanGestures = {
  * takes a pinch, a trackpad's or two fingers', so those handlers can ignore
  * the moves. Give the target `touch-action: none`, or a touchscreen pinches
  * and scrolls the page as well, which no handler can stop.
+ *
+ * @example
+ * ```tsx
+ * // A timeline showing `range`, in ms, across an element `width` px wide.
+ * const ref = useRef<HTMLDivElement>(null)
+ * const valuePerPx = (range.end - range.start) / width
+ *
+ * useZoomPanGestures(ref, {
+ *   getValueAt: (clientX) =>
+ *     range.start +
+ *     (clientX - (ref.current?.getBoundingClientRect().left ?? 0)) * valuePerPx,
+ *   valuePerPx,
+ *   // Scale the span around the value under the pointer.
+ *   onZoom: (anchor, factor) =>
+ *     setRange(({ start, end }) => ({
+ *       start: anchor - (anchor - start) * factor,
+ *       end: anchor + (end - anchor) * factor,
+ *     })),
+ *   onPan: (delta) =>
+ *     setRange(({ start, end }) => ({ start: start + delta, end: end + delta })),
+ * })
+ *
+ * return <div ref={ref} style={{ touchAction: 'none' }} />
+ * ```
  */
 export const useZoomPanGestures = (
   target: React.RefObject<Element | null>,

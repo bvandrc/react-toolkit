@@ -9,6 +9,24 @@ import { createContext, useContext } from 'react'
  *
  * `providerName` is the only thing worth saying that the runtime can't work
  * out: which hook was called is already the top frame of the thrown stack.
+ *
+ * @example
+ * ```tsx
+ * const [SessionContext, useSession] =
+ *   createRequiredContext<Session>('SessionProvider')
+ *
+ * const SessionProvider = ({ children }: { children: React.ReactNode }) => (
+ *   <SessionContext.Provider value={useLoadSession()}>
+ *     {children}
+ *   </SessionContext.Provider>
+ * )
+ *
+ * const Avatar = () => {
+ *   // A `Session`, never `null`; throws outside `SessionProvider`.
+ *   const session = useSession()
+ *   return <img src={session.avatarUrl} alt="" />
+ * }
+ * ```
  */
 export const createRequiredContext = <T>(providerName: string) => {
   const Context = createContext<T | null>(null)

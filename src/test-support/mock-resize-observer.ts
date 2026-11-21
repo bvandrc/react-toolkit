@@ -9,6 +9,14 @@ import { vi } from 'vitest'
 /**
  * Stubs the global `ResizeObserver`, returning a function that reports a
  * resize to every observer still connected.
+ *
+ * @example
+ * ```ts
+ * const reportResize = mockResizeObserver()
+ * renderEditor()
+ *
+ * act(() => reportResize())
+ * ```
  */
 export const mockResizeObserver = () => {
   const connected = new Set<() => void>()

@@ -34,7 +34,16 @@ export type ScrollOnFocusOptions = Pick<
   'scrollBehavior'
 >
 
-/** Focus and blur handlers to spread onto the element to keep where `block` puts it. */
+/**
+ * Focus and blur handlers to spread onto the element to keep where `block` puts it.
+ *
+ * @example
+ * ```tsx
+ * const scrollOnFocus = useScrollOnFocus('nearest')
+ *
+ * return <textarea {...scrollOnFocus} />
+ * ```
+ */
 export const useScrollOnFocus = (
   block: ScrollBlock,
   { scrollBehavior }: ScrollOnFocusOptions = {}

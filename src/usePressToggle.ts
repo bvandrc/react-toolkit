@@ -49,6 +49,20 @@ export type UsePressToggleOptions = {
  *
  * Spread `triggerProps` on the trigger, and route every other change through
  * `setIsActive`. Both keep their identity across renders.
+ *
+ * @example
+ * ```tsx
+ * // An info icon inside a link: a tap shows its hint, and a click follows the link.
+ * const { isActive, triggerProps } = usePressToggle({ pointerTypes: ['touch'] })
+ *
+ * return (
+ *   <a href={href}>
+ *     {label}
+ *     <span {...triggerProps}>ⓘ</span>
+ *     {isActive && <span role="tooltip">{hint}</span>}
+ *   </a>
+ * )
+ * ```
  */
 export const usePressToggle = ({
   pointerTypes,

@@ -83,6 +83,21 @@ interface UsePressHold {
  * taking the touch over, or the component unmounting. So `onHold` only ever
  * runs for a press that was still down, still where it started, for the whole
  * duration.
+ *
+ * @example
+ * ```tsx
+ * const { isHolding, handlers } = usePressHold({
+ *   onHold: () => startSelecting(card.id),
+ *   // The card's own buttons keep their presses.
+ *   ignoreSelector: 'button',
+ * })
+ *
+ * return (
+ *   <li {...handlers} data-holding={isHolding}>
+ *     {card.title}
+ *   </li>
+ * )
+ * ```
  */
 export const usePressHold = ({
   onHold,

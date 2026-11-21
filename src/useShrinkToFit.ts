@@ -27,6 +27,26 @@ export type ShrinkToFitOptions = {
  *
  * It measures before the browser paints, so no size flashes, and again
  * whenever the line's width or `stepCount` changes, or a font loads.
+ *
+ * @example
+ * ```tsx
+ * const SIZES = ['text-2xl', 'text-xl', 'text-lg']
+ *
+ * const lineRef = useRef<HTMLDivElement>(null)
+ * const textRef = useRef<HTMLHeadingElement>(null)
+ * const step = useShrinkToFit({ lineRef, textRef, stepCount: SIZES.length })
+ *
+ * // The badge wraps below the title until the title is small enough to share
+ * // its line.
+ * return (
+ *   <div ref={lineRef} className="flex flex-wrap items-baseline gap-2">
+ *     <h2 ref={textRef} className={`whitespace-nowrap ${SIZES[step]}`}>
+ *       {title}
+ *     </h2>
+ *     <span>{badge}</span>
+ *   </div>
+ * )
+ * ```
  */
 export const useShrinkToFit = ({
   lineRef,

@@ -15,6 +15,30 @@ import { useCallback, useLayoutEffect, useRef } from 'react'
  * moved anywhere else, `<body>` included, is left alone. `containerProps`
  * carries the container's `ref`, so a `ref` set beside it replaces it and
  * stops the handoff for anything a child unmounts on its own.
+ *
+ * @example
+ * ```tsx
+ * // Deleting a row moves focus to the add field rather than dropping it.
+ * const { containerProps, targetRef } = useFocusHandoff<
+ *   HTMLUListElement,
+ *   HTMLInputElement
+ * >()
+ *
+ * return (
+ *   <>
+ *     <ul {...containerProps}>
+ *       {todos.map((todo) => (
+ *         <li key={todo.id}>
+ *           <button type="button" onClick={() => remove(todo.id)}>
+ *             Delete
+ *           </button>
+ *         </li>
+ *       ))}
+ *     </ul>
+ *     <input ref={targetRef} />
+ *   </>
+ * )
+ * ```
  */
 export const useFocusHandoff = <
   Container extends HTMLElement = HTMLElement,

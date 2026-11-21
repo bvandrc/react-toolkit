@@ -13,6 +13,17 @@ import { useRef, useState } from 'react'
  * default cancelled whenever focus moves -- a Radix dialog's
  * `onCloseAutoFocus` takes it as is. It does nothing when the opener has since
  * unmounted, and reports whether it moved focus.
+ *
+ * @example
+ * ```tsx
+ * const { returnFocus } = useFocusReturn(open)
+ *
+ * return (
+ *   <Dialog.Root open={open} onOpenChange={setOpen}>
+ *     <Dialog.Content onCloseAutoFocus={returnFocus}>{children}</Dialog.Content>
+ *   </Dialog.Root>
+ * )
+ * ```
  */
 export const useFocusReturn = (open: boolean) => {
   const openerRef = useRef<Element | null>(null)
