@@ -8,29 +8,21 @@ import { useEffect, useState } from 'react'
 import { parseUrlHash, type UrlHashTarget } from './utils'
 
 /**
- * The target of the URL's `#`, like `#pricing` or `#pricing?plan=pro`, once
- * the page has landed on it; `undefined` until then, or for no `#`.
+ * The URL's `#` target, like `#pricing?plan=pro`, once the page has landed on
+ * it; `undefined` until then, or for no `#`.
  *
- * A browser scrolls to a `#` as the page loads, before a client-rendered app
- * has drawn its element, so finds nothing. This jumps there once the app has
- * rendered, a frame after its first effects, by when layout effects that
- * resize what's above it have settled. It jumps again when the `#` changes to
- * one with parameters, which names no element the browser could find itself,
- * and leaves a plain `#id` it changes to, like an in-page link's, to the
- * browser's own scroll, returning that at once.
- *
- * It returns a target it jumped to a frame after the jump, past the jump's
- * scroll event, so a tooltip or popover opened on it, which Radix and others
- * close on any scroll that moves their trigger, stays open. The jump is
- * instant, and keeps to the element's `scroll-margin` and its scroll
- * container's `scroll-padding`. Call it once, near the app's root: each caller
- * jumps.
+ * Jumps to its element once the app has rendered it, and again when the `#`
+ * changes to one with parameters; a plain `#id` it changes to, it leaves to the
+ * browser. Returns a target a frame after jumping to it, so a tooltip opened on
+ * it isn't closed by the jump's scroll. Call it once, near the app's root.
  */
 export const useUrlHashTarget = () => {
   const [landed, setLanded] = useState<UrlHashTarget>()
   useEffect(() => {
     let frame: number | undefined
     const land = (target: UrlHashTarget) => {
+      // A frame on, by when layout effects that resize what's above it have
+      // settled.
       frame = requestAnimationFrame(() => {
         // Instant, as the browser's own would be, rather than gliding past
         // everything above it.
@@ -56,6 +48,7 @@ export const useUrlHashTarget = () => {
       land(target)
     }
 
+    // The browser looked for it as the page loaded, before the app drew it.
     const loadTarget = parseUrlHash(window.location.hash)
     if (loadTarget !== undefined) {
       land(loadTarget)
