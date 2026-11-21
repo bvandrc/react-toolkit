@@ -37,6 +37,14 @@ import { onFocusScrollEnd } from './utils'
  * )
  * ```
  */
+/**
+ * Whether a focus event is the element's own, or one of what's inside it,
+ * rather than one React bubbles up from a portal it renders, like a button in
+ * the tooltip it opens.
+ */
+const isOwnFocusEvent = (event: React.FocusEvent<HTMLElement>) =>
+  event.target instanceof Node && event.currentTarget.contains(event.target)
+
 export const useFocusVisibleOpen = () => {
   const [open, setOpenState] = useState(false)
   // Calls off an open still waiting on its focus scroll.
@@ -50,12 +58,19 @@ export const useFocusVisibleOpen = () => {
     () => ({
       onFocus: (event: React.FocusEvent<HTMLElement>) => {
         const element = event.currentTarget
+        if (!isOwnFocusEvent(event)) {
+          return
+        }
         cancelRef.current?.()
         cancelRef.current = onFocusScrollEnd(element, () =>
           setOpenState(element.matches(':focus-visible'))
         )
       },
-      onBlur: () => setOpen(false),
+      onBlur: (event: React.FocusEvent<HTMLElement>) => {
+        if (isOwnFocusEvent(event)) {
+          setOpen(false)
+        }
+      },
     }),
     [setOpen]
   )

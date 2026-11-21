@@ -1,9 +1,16 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { createPortal } from 'react-dom'
 
 import { useFocusVisibleOpen } from '../useFocusVisibleOpen'
 
-const T_IDS = { TRIGGER: 'trigger', CLOSE: 'close' } as const
+const T_IDS = {
+  TRIGGER: 'trigger',
+  CLOSE: 'close',
+  OPEN: 'open',
+  PORTALED_1: 'portaled-1',
+  PORTALED_2: 'portaled-2',
+} as const
 
 /** A trigger showing whether the hook says it's open, and a button that closes it. */
 const OpenOnFocusTrigger = () => {
@@ -19,6 +26,33 @@ const OpenOnFocusTrigger = () => {
         onPointerDown={(event) => event.preventDefault()}
         onClick={() => setOpen(false)}
         data-testid={T_IDS.CLOSE}
+      />
+    </>
+  )
+}
+
+/**
+ * A trigger whose React children include buttons portaled out of it, as a
+ * tooltip's content is, and a button outside it that opens it.
+ */
+const OpenWithPortalTrigger = () => {
+  const { open, setOpen, focusProps } = useFocusVisibleOpen()
+  return (
+    <>
+      <div {...focusProps} data-testid={T_IDS.TRIGGER}>
+        {open ? 'open' : 'closed'}
+        {createPortal(
+          <>
+            <button type="button" data-testid={T_IDS.PORTALED_1} />
+            <button type="button" data-testid={T_IDS.PORTALED_2} />
+          </>,
+          document.body
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        data-testid={T_IDS.OPEN}
       />
     </>
   )
@@ -86,5 +120,16 @@ describe('useFocusVisibleOpen', () => {
     await user.click(screen.getByTestId(T_IDS.CLOSE))
     await endScroll()
     expect(getTriggerState(), 'closed').toBe('closed')
+  })
+
+  it('ignores the focus and blur React bubbles up from a portal inside the trigger, like a button in the tooltip it opens', async () => {
+    const user = userEvent.setup()
+    render(<OpenWithPortalTrigger />)
+    await user.click(screen.getByTestId(T_IDS.OPEN))
+
+    await user.click(screen.getByTestId(T_IDS.PORTALED_1))
+    await user.click(screen.getByTestId(T_IDS.PORTALED_2))
+    await endScroll()
+    expect(getTriggerState()).toBe('open')
   })
 })
