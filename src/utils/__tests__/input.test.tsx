@@ -52,6 +52,30 @@ describe('blurFocusedTextInput', () => {
     expect(document.activeElement).not.toBe(input)
   })
 
+  it('moves focus to `focusTo` rather than dropping it on the page', () => {
+    render(
+      <div role="dialog" aria-label="Edit" tabIndex={-1}>
+        <input aria-label="Name" />
+      </div>
+    )
+    screen.getByRole('textbox').focus()
+
+    expect(blurFocusedTextInput(screen.getByRole('dialog'))).toBe(true)
+    expect(document.activeElement).toBe(screen.getByRole('dialog'))
+  })
+
+  it('still leaves the field when `focusTo` cannot take focus', () => {
+    render(<input aria-label="Name" />)
+    const input = screen.getByRole('textbox')
+    input.focus()
+    // happy-dom lets anything on the page take focus, so one off the page
+    // stands in for an element that can't.
+    const UNFOCUSABLE = document.createElement('div')
+
+    expect(blurFocusedTextInput(UNFOCUSABLE)).toBe(true)
+    expect(document.activeElement).not.toBe(input)
+  })
+
   it('leaves a non-input focused', () => {
     render(<button type="button">Save</button>)
     const button = screen.getByRole('button')

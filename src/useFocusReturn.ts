@@ -9,6 +9,10 @@ import { useRef, useState } from 'react'
  * Remembers what had focus when `open` turns true, and hands back
  * `returnFocus`, which focuses it again.
  *
+ * A first render that's already open counts as turning true, so a dialog
+ * mounted only once it opens -- lazily, or behind `open &&` -- still finds its
+ * opener.
+ *
  * Call `returnFocus` as the dialog closes, passing the close event to have its
  * default cancelled whenever focus moves -- a Radix dialog's
  * `onCloseAutoFocus` takes it as is. It does nothing when the opener has since
@@ -27,7 +31,9 @@ import { useRef, useState } from 'react'
  */
 export const useFocusReturn = (open: boolean) => {
   const openerRef = useRef<Element | null>(null)
-  const [wasOpen, setWasOpen] = useState(open)
+  // Starts closed whatever `open` is, so a first render that's already open
+  // is read as an open like any other.
+  const [wasOpen, setWasOpen] = useState(false)
   if (open !== wasOpen) {
     setWasOpen(open)
     // Read while rendering the open, before anything in the dialog autofocuses

@@ -34,6 +34,7 @@ Follow all of these. `.github/workflows/sync-conventions.yml` syncs them from ht
 - **README is an index; JSDoc holds the details**:
   - Each README row says what the export is for, plus any requirement that breaks it when missed (like `useShrinkToFit`'s text not wrapping). That's enough to pick it and use it safely.
   - Options, edge cases, timing, and examples go in its JSDoc, which ships in the `dist/*.d.mts` types, where a consumer's editor or agent reads it.
+  - So a change to an existing export, like a new optional parameter or a fixed edge case, usually touches only its JSDoc. Its row changes only when what the export is for changes, or when it gains a requirement that breaks it when missed.
 - **Test support ships**: `src/test-support/` is published for consumers' tests, so it imports `vi` from `vitest` rather than relying on globals a consumer may not turn on.
 - **`@/*` is `src/*`**:
   - Use it for any import that would climb out of a folder (`../`); keep same-folder siblings relative.
