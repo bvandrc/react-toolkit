@@ -3,7 +3,7 @@
  * scroll that focus brings is done, in place of Radix's own focus handling.
  */
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 
 import { useFocusVisibleOpen } from './useFocusVisibleOpen'
 import { useMaybeControlled } from './useMaybeControlled'
@@ -21,8 +21,10 @@ import { useMaybeControlled } from './useMaybeControlled'
  *
  * - Spread `rootProps` on the tooltip's root, and close it through
  *   `rootProps.onOpenChange(false)`, which closes a focus open too.
- * - Spread `focusProps` on its trigger. They cancel the focus event, which a
- *   Radix trigger takes as leaving the open to them.
+ * - Spread `focusProps` on its trigger. The open Radix asks for as that
+ *   focus lands is ignored, and the event is left uncancelled, so the
+ *   trigger's other focus handlers still run, like a Radix radio's
+ *   select-on-arrow-key.
  * - `dropFocusOpen` lets go of a focus open, for something that takes over
  *   from it, like `usePressToggle` on a press.
  *
@@ -44,12 +46,16 @@ export const useTooltipFocusOpen = (
     focusProps,
   } = useFocusVisibleOpen()
 
+  // Set for the length of a focus event, when an open is Radix's own.
+  const isFocusingRef = useRef(false)
+
   const dropFocusOpen = useCallback(
     () => setIsFocusOpen(false),
     [setIsFocusOpen]
   )
   const onOpenChange = useCallback(
     (next: boolean) => {
+      if (next && isFocusingRef.current) return
       setOpen(next)
       dropFocusOpen()
     },
@@ -65,9 +71,13 @@ export const useTooltipFocusOpen = (
       () => ({
         onFocus: (event: React.FocusEvent<HTMLElement>) => {
           focusProps.onFocus(event)
-          // Radix's trigger runs the handler it's given before its own, and
-          // skips its own open for an event already prevented.
-          event.preventDefault()
+          // Radix's trigger runs the handler it's given before its own open,
+          // in the same call. Cancelling the event would stop that open too,
+          // but also every other handler the trigger composes the same way.
+          isFocusingRef.current = true
+          queueMicrotask(() => {
+            isFocusingRef.current = false
+          })
         },
         onBlur: focusProps.onBlur,
       }),

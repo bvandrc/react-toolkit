@@ -20,9 +20,12 @@ const T_IDS = {
 const TooltipTrigger = ({
   open,
   setOpen,
+  onTriggerFocus,
 }: {
   open?: boolean
   setOpen?: (next: boolean) => void
+  /** Another handler on the trigger, run after the hook's, as a Radix trigger composes its own. */
+  onTriggerFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void
 }) => {
   const { rootProps, focusProps, dropFocusOpen } = useTooltipFocusOpen(
     open,
@@ -35,10 +38,11 @@ const TooltipTrigger = ({
       <button
         type="button"
         {...focusProps}
-        // A Radix trigger runs the handler it's given first, and opens on
+        // A Radix trigger runs the handler it's given first, then opens on
         // focus itself unless that handler prevented the event.
         onFocus={(event) => {
           focusProps.onFocus(event)
+          onTriggerFocus?.(event)
           if (!event.defaultPrevented) rootProps.onOpenChange(true)
         }}
         data-testid={T_IDS.TRIGGER}>
@@ -99,6 +103,33 @@ describe('useTooltipFocusOpen', () => {
     // the scroll.
     expect(getTriggerState()).toBe('closed')
     await endScroll()
+    expect(getTriggerState()).toBe('open')
+  })
+
+  it("leaves the focus event uncancelled for the trigger's other handlers", async () => {
+    // What a Radix radio's select-on-arrow-key, composed on the same trigger,
+    // needs to run.
+    const user = userEvent.setup()
+    const onTriggerFocus = vi.fn((event: React.FocusEvent) =>
+      expect(event.defaultPrevented).toBe(false)
+    )
+    render(<TooltipTrigger onTriggerFocus={onTriggerFocus} />)
+
+    await user.tab()
+
+    expect(onTriggerFocus).toHaveBeenCalledOnce()
+  })
+
+  it('opens on a request once the focus event is over, like a hover', async () => {
+    // Only the open asked for during the focus is Radix's own.
+    const user = userEvent.setup()
+    render(<TooltipTrigger />)
+
+    await user.tab()
+    await waitFor(() => expect(getTriggerState()).toBe('open'))
+    await user.click(screen.getByTestId(T_IDS.DROP))
+    await user.click(screen.getByTestId(T_IDS.HOVER))
+
     expect(getTriggerState()).toBe('open')
   })
 
