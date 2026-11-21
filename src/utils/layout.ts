@@ -44,8 +44,8 @@ const toScrollPaddingPx = (value: string, scrollportHeight: number) => {
  * For the document's scrolling element, that's the window, not the whole
  * scrolled page.
  * Leaves out its scroll padding, which marks what a sticky header or footer
- * covers, as the browser's own `scrollIntoView` does, and anything below the
- * visual viewport, which is what an open on-screen keyboard covers.
+ * covers, as the browser's own `scrollIntoView` does, and what the on-screen
+ * keyboard covers.
  */
 export const getVisibleBounds = (scrollParent: HTMLElement) => {
   let top: number
@@ -62,10 +62,8 @@ export const getVisibleBounds = (scrollParent: HTMLElement) => {
   const { scrollPaddingTop, scrollPaddingBottom } =
     getComputedStyle(scrollParent)
   const height = bottom - top
-  // Neither the window nor a `fixed` container shrinks when the keyboard
-  // opens -- only the visual viewport does -- so its bottom caps what's
-  // visible. The top is left alone: it only moves under a pan or pinch zoom,
-  // and `useScrollOnFocus` measures its keyboard recovery from it.
+  // Only the visual viewport shrinks for the keyboard, so its bottom caps
+  // ours. The top stays, since `useScrollOnFocus` measures from it.
   const viewport = window.visualViewport
   const viewportBottom = viewport
     ? viewport.offsetTop + viewport.height
