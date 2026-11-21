@@ -22,13 +22,8 @@ const changeHash = (hash: string) =>
 /** Runs the next animation frame's callbacks. */
 const advanceFrame = () => act(() => vi.advanceTimersToNextFrame())
 
-/** The hook's target, with its parameters as a plain object to compare. */
-const getLanded = (result: { current: ReturnType<typeof useUrlHashTarget> }) =>
-  result.current && {
-    ...result.current,
-    params: Object.fromEntries(result.current.params),
-  }
-
+// Which target it lands on, and when, is the hook's own; how a `#` reads is
+// `parseUrlHash`'s, tested there.
 describe('useUrlHashTarget', () => {
   beforeEach(() => {
     vi.useFakeTimers({
@@ -54,10 +49,7 @@ describe('useUrlHashTarget', () => {
     expect(result.current).toBeUndefined()
 
     advanceFrame()
-    expect(getLanded(result)).toEqual({
-      id: 'pricing',
-      params: { plan: 'pro' },
-    })
+    expect(result.current?.id).toBe('pricing')
   })
 
   it('jumps again to a `#` with parameters it changes to, which names no element the browser could find', () => {
@@ -68,10 +60,7 @@ describe('useUrlHashTarget', () => {
     advanceFrame()
     advanceFrame()
     expect(scrollIntoView).toHaveBeenCalledOnce()
-    expect(getLanded(result)).toEqual({
-      id: 'pricing',
-      params: { plan: 'pro' },
-    })
+    expect(result.current?.id).toBe('pricing')
   })
 
   it('leaves a plain `#id` it changes to for the browser to scroll to, returning it at once', () => {
@@ -79,7 +68,7 @@ describe('useUrlHashTarget', () => {
     const { result } = renderHook(useUrlHashTarget)
 
     changeHash('#pricing')
-    expect(getLanded(result)).toEqual({ id: 'pricing', params: {} })
+    expect(result.current?.id).toBe('pricing')
 
     advanceFrame()
     advanceFrame()
@@ -97,6 +86,6 @@ describe('useUrlHashTarget', () => {
     advanceFrame()
     expect(scrollToPricing).not.toHaveBeenCalled()
     expect(scrollToFaq).toHaveBeenCalledOnce()
-    expect(getLanded(result)).toEqual({ id: 'faq', params: { open: '1' } })
+    expect(result.current?.id).toBe('faq')
   })
 })
