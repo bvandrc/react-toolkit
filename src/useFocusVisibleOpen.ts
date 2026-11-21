@@ -17,6 +17,25 @@ import { onFocusScrollEnd } from './utils'
  * once the scroll that focus brings is done, since Radix closes a tooltip
  * whose trigger scrolls; a blur, a `setOpen`, or unmounting before then calls
  * it off. `setOpen` and `focusProps` keep their identity across renders.
+ *
+ * @example
+ * ```tsx
+ * const { open, focusProps } = useFocusVisibleOpen()
+ * const hintId = useId()
+ *
+ * // The hint stays rendered while closed, hidden, so the button keeps its
+ * // description.
+ * return (
+ *   <>
+ *     <button type="button" {...focusProps} aria-describedby={hintId}>
+ *       Save
+ *     </button>
+ *     <div role="tooltip" id={hintId} hidden={!open}>
+ *       Ctrl+S
+ *     </div>
+ *   </>
+ * )
+ * ```
  */
 export const useFocusVisibleOpen = () => {
   const [open, setOpenState] = useState(false)

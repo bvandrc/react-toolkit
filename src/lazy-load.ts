@@ -18,6 +18,32 @@ type LazyLoadState<T> = {
  * `prefetch`, which starts loading it, say as a pointer arrives ahead of a
  * tooltip opening. Prefetching after a failure tries again. `prefetch` keeps
  * its identity while `enabled` holds.
+ *
+ * @example
+ * ```tsx
+ * // At module scope, so every component shares the one load.
+ * const useEmojiPicker = createLazyLoad(() => import('./EmojiPicker'))
+ *
+ * const EmojiButton = () => {
+ *   const [open, setOpen] = useState(false)
+ *   const { value: picker, prefetch } = useEmojiPicker()
+ *   return (
+ *     <>
+ *       <button
+ *         type="button"
+ *         onPointerEnter={prefetch}
+ *         onFocus={prefetch}
+ *         onClick={() => {
+ *           prefetch()
+ *           setOpen(!open)
+ *         }}>
+ *         Emoji
+ *       </button>
+ *       {open && picker && <picker.EmojiPicker />}
+ *     </>
+ *   )
+ * }
+ * ```
  */
 export const createLazyLoad = <T>(load: () => Promise<T>) => {
   let state: LazyLoadState<T> = {}

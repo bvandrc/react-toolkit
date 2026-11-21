@@ -24,6 +24,19 @@ const NO_CLICK_TIMEOUT_MS = 500
  * second after release where no click comes. `run` replaces a call still
  * waiting, and unmount drops it. Both functions keep their identity across
  * renders.
+ *
+ * @example
+ * ```tsx
+ * const { run } = useAfterPress()
+ *
+ * // Close the toolbar as focus leaves, without taking the click from whatever
+ * // was pressed to move it.
+ * const onBlur = (event: React.FocusEvent<HTMLDivElement>) => {
+ *   if (!event.currentTarget.contains(event.relatedTarget)) {
+ *     run(() => setToolbarOpen(false))
+ *   }
+ * }
+ * ```
  */
 export const useAfterPress = () => {
   const isPressingRef = useRef(false)

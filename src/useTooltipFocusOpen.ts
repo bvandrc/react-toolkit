@@ -30,6 +30,50 @@ import { useMaybeControlled } from './useMaybeControlled'
  *
  * `rootProps.onOpenChange`, `focusProps`, and `dropFocusOpen` keep their
  * identity while `onControlledOpenChange` does, and always where it's left out.
+ *
+ * @example
+ * ```tsx
+ * // A tooltip only hover and focus open, so the hook holds its state. Like
+ * // any Radix tooltip, it needs a `Tooltip.Provider` above it.
+ * const { rootProps, focusProps } = useTooltipFocusOpen()
+ *
+ * return (
+ *   <Tooltip.Root {...rootProps}>
+ *     <Tooltip.Trigger {...focusProps}>Save</Tooltip.Trigger>
+ *     <Tooltip.Content>Ctrl+S</Tooltip.Content>
+ *   </Tooltip.Root>
+ * )
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // A tooltip a tap, click, or Enter toggles as well.
+ * // `cancelClick` stops the trigger's own click from closing what the toggle
+ * // just opened, and `dropFocusOpen` lets a press close one focus opened.
+ * const { isActive, setIsActive, triggerProps } = usePressToggle({
+ *   cancelClick: true,
+ * })
+ * const { rootProps, focusProps, dropFocusOpen } = useTooltipFocusOpen(
+ *   isActive,
+ *   setIsActive
+ * )
+ *
+ * return (
+ *   <Tooltip.Root {...rootProps}>
+ *     <Tooltip.Trigger
+ *       aria-label="More info"
+ *       {...triggerProps}
+ *       {...focusProps}
+ *       onClick={(event) => {
+ *         triggerProps.onClick(event)
+ *         dropFocusOpen()
+ *       }}>
+ *       ⓘ
+ *     </Tooltip.Trigger>
+ *     <Tooltip.Content>{hint}</Tooltip.Content>
+ *   </Tooltip.Root>
+ * )
+ * ```
  */
 export const useTooltipFocusOpen = (
   controlledOpen?: boolean,

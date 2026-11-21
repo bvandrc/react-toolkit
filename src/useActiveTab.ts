@@ -34,6 +34,24 @@ const canCoordinate = () =>
  * Render the app only while `status` is `active`, from this component or one
  * below it, so a tab stepping down lets go only once the app has unmounted
  * and `beforeHandOver` has resolved.
+ *
+ * @example
+ * ```tsx
+ * const { status, takeOver } = useActiveTab('notes-app', {
+ *   // Write anything unsaved before another tab takes over.
+ *   beforeHandOver: flushPendingWrites,
+ * })
+ *
+ * if (status === 'pending') return null
+ * if (status === 'elsewhere') {
+ *   return (
+ *     <button type="button" onClick={takeOver}>
+ *       Use the app in this tab
+ *     </button>
+ *   )
+ * }
+ * return <App />
+ * ```
  */
 export const useActiveTab = (
   name: string,

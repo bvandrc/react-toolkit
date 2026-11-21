@@ -74,6 +74,16 @@ export interface ScrollIntoViewCallOptions {
  * over from anything still pending: a smooth scroll still running carries on
  * toward the new target rather than stopping first. `cancel` stops an
  * animated scroll where it is.
+ *
+ * @example
+ * ```tsx
+ * const { scrollIntoView } = useScrollIntoView({ scrollBehavior: 'smooth' })
+ *
+ * // Bring a search result's link to the top of its list, then focus it once
+ * // it lands.
+ * const reveal = (link: HTMLAnchorElement) =>
+ *   scrollIntoView(link, 'start', { onScrollEnd: () => link.focus() })
+ * ```
  */
 export const useScrollIntoView = ({
   scrollBehavior = 'instant',
