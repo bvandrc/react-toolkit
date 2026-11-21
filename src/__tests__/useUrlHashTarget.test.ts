@@ -88,4 +88,18 @@ describe('useUrlHashTarget', () => {
     expect(scrollToFaq).toHaveBeenCalledOnce()
     expect(result.current?.id).toBe('faq')
   })
+
+  it('jumps with `scrollToTarget` in place of its own, given the element and target', () => {
+    window.history.replaceState(null, '', '/#pricing?plan=pro')
+    const scrollIntoView = createTarget('pricing')
+    const scrollToTarget = vi.fn()
+    renderHook(() => useUrlHashTarget({ scrollToTarget }))
+
+    advanceFrame()
+    expect(scrollToTarget).toHaveBeenCalledWith(
+      document.getElementById('pricing'),
+      expect.objectContaining({ id: 'pricing' })
+    )
+    expect(scrollIntoView).not.toHaveBeenCalled()
+  })
 })
