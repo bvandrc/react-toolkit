@@ -43,6 +43,26 @@ describe('useFocusReturn', () => {
     expect(document.activeElement).toBe(screen.getByTestId(T_IDS.OPENER_BTN))
   })
 
+  it('finds the opener of a dialog that first renders already open', () => {
+    render(
+      <>
+        <button type="button" data-testid={T_IDS.OPENER_BTN} />
+        <button type="button" data-testid={T_IDS.INSIDE_BTN} />
+      </>
+    )
+    const opener = screen.getByTestId(T_IDS.OPENER_BTN)
+    opener.focus()
+    // Mounted open, as a dialog that only renders once it opens would be.
+    const hook = renderHook(({ open }) => useFocusReturn(open), {
+      initialProps: { open: true },
+    })
+    screen.getByTestId(T_IDS.INSIDE_BTN).focus()
+    hook.rerender({ open: false })
+
+    expect(hook.result.current.returnFocus()).toBe(true)
+    expect(document.activeElement).toBe(opener)
+  })
+
   it('leaves the close event alone once the opener has unmounted', () => {
     const { page, hook } = renderClosedAfterOpening()
     page.unmount()
