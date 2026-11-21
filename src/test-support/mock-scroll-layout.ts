@@ -26,6 +26,20 @@ export interface MockScrollLayoutState {
  * as a real scroll would. Returns `scrollTo`, a spy on the container's own: a
  * smooth scroll is recorded but never runs, so a case sets `scrollTop` to
  * wherever it should have got to, and any other goes through.
+ *
+ * @example
+ * ```tsx
+ * const { scrollTo } = mockScrollLayout(list, row, {
+ *   top: 900,
+ *   height: 40,
+ *   visibleHeight: 400,
+ * })
+ *
+ * await user.click(screen.getByTestId(SELECTORS.LIST.JUMP_TO_ROW_BTN))
+ *
+ * // A smooth scroll is recorded rather than run; an instant one sets `scrollTop`.
+ * expect(scrollTo).toHaveBeenCalledWith({ top: 900, behavior: 'smooth' })
+ * ```
  */
 export const mockScrollLayout = (
   scrollParent: HTMLElement,

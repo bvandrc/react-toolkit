@@ -10,6 +10,12 @@
  * Hidden as well as `pagehide`, since a phone can kill a backgrounded app
  * without `pagehide` ever firing -- so `callback` can run more than once per
  * visit, and should be safe to.
+ *
+ * @example
+ * ```tsx
+ * // The unsubscribe it returns doubles as the effect's cleanup.
+ * useEffect(() => onAppLeave(flushDrafts), [])
+ * ```
  */
 export const onAppLeave = (callback: () => void) => {
   const onVisibilityChange = () => {

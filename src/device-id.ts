@@ -21,6 +21,17 @@ const writeStoredId = (storageKey: string, deviceId: string) =>
  *
  * Its key should not be scoped to a user or session, so the id survives
  * logout, account deletion, and the like.
+ *
+ * @example
+ * ```ts
+ * const deviceId = createDeviceId({ storageKey: 'notes-app:device-id' })
+ *
+ * const id = await deviceId.getDeviceId()
+ *
+ * // Carry the id across a sign-out that clears everything else.
+ * localStorage.clear()
+ * deviceId.setDeviceId(id)
+ * ```
  */
 export const createDeviceId = ({
   storageKey,

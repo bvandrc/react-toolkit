@@ -25,6 +25,15 @@ const restoreProperty = (
  *
  * Needs Node 24. Its locks are shared by the whole test process, so give each
  * case's locks a name of its own.
+ *
+ * @example
+ * ```ts
+ * let uninstallTabApis: () => void
+ * beforeEach(() => {
+ *   uninstallTabApis = installTabApis()
+ * })
+ * afterEach(() => uninstallTabApis())
+ * ```
  */
 export const installTabApis = () => {
   // Typed as always there, but absent before Node 24.

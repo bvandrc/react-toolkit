@@ -27,6 +27,19 @@ const unpin = (el: HTMLElement) => {
  *   overflow can still reach content the keyboard would otherwise cover --
  *   the layout viewport, and this element with it, doesn't shrink when the
  *   keyboard opens, only the visual one does.
+ *
+ * @example
+ * ```tsx
+ * // `sheetRef` is kept pointing at the sheet; attach the returned ref, not it.
+ * const sheetRef = useRef<HTMLElement | null>(null)
+ * const pinRef = useVisualViewportPin(sheetRef, open)
+ *
+ * return (
+ *   <div ref={pinRef} className="fixed inset-0 overflow-y-auto">
+ *     {children}
+ *   </div>
+ * )
+ * ```
  */
 export const useVisualViewportPin = (
   ref: React.MutableRefObject<HTMLElement | null>,

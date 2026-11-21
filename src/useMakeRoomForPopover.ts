@@ -31,6 +31,22 @@ export interface MakeRoomForPopoverOptions
  * each time the popover mounts, so one that unmounts while closed (as
  * `@radix-ui`'s do) checks on every open. Never scrolls the page itself: a
  * target whose scroll area is the page has no room to give.
+ *
+ * @example
+ * ```tsx
+ * const triggerRef = useRef<HTMLButtonElement>(null)
+ * // The menu sits 8px off its trigger.
+ * const contentRef = useMakeRoomForPopover(triggerRef, { extraHeightPx: 8 })
+ *
+ * return (
+ *   <DropdownMenu.Root>
+ *     <DropdownMenu.Trigger ref={triggerRef}>Options</DropdownMenu.Trigger>
+ *     <DropdownMenu.Content ref={contentRef} sideOffset={8}>
+ *       {items}
+ *     </DropdownMenu.Content>
+ *   </DropdownMenu.Root>
+ * )
+ * ```
  */
 export const useMakeRoomForPopover = (
   triggerRef: React.RefObject<HTMLElement | null>,

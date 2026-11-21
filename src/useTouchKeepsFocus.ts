@@ -14,6 +14,18 @@ import { useRef } from 'react'
  * `onOpenAutoFocus` is the name Radix's menus and popovers take. One opened by
  * mouse or keyboard takes focus as usual, so its items stay reachable with the
  * arrow keys.
+ *
+ * @example
+ * ```tsx
+ * const { triggerProps, contentProps } = useTouchKeepsFocus()
+ *
+ * return (
+ *   <Popover.Root>
+ *     <Popover.Trigger {...triggerProps}>Insert</Popover.Trigger>
+ *     <Popover.Content {...contentProps}>{snippets}</Popover.Content>
+ *   </Popover.Root>
+ * )
+ * ```
  */
 export const useTouchKeepsFocus = () => {
   const wasOpenedByTouch = useRef(false)
