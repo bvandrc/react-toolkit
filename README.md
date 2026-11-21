@@ -50,6 +50,8 @@ Requires React 18 or 19. ESM only, with types included. Each export's JSDoc, shi
 | `findScrollableAncestor` | The nearest ancestor that scrolls, or the document's scrolling element. |
 | `getVisibleBounds` | The visible top and bottom of a scroll container, in viewport coordinates, minus its scroll padding and the on-screen keyboard. |
 | `onFocusScrollEnd` | Calls back once the scroll that focusing an element brings has finished. Works outside React. |
+| `useUrlHashTarget` | Scrolls to the element the URL's `#` names once the app has rendered it, and again when the `#` changes to one with parameters, like `#pricing?plan=pro`. Returns the `#`'s target once the page has landed, past the jump's scroll, so a tooltip opened on it stays open. |
+| `parseUrlHash` | The element id a URL's `#` names, and the parameters after its `?`. |
 
 The scrolling hooks jump by default; pass `scrollBehavior: 'smooth'` to animate, except for users who prefer reduced motion.
 
