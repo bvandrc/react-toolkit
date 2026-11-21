@@ -41,6 +41,8 @@ const toScrollPaddingPx = (value: string, scrollportHeight: number) => {
 /**
  * The visible top and bottom of `scrollParent`, in viewport coordinates.
  *
+ * For the document's scrolling element, that's the window, not the whole
+ * scrolled page.
  * Leaves out its scroll padding, which marks what a sticky header or footer
  * covers, as the browser's own `scrollIntoView` does.
  */

@@ -1,9 +1,5 @@
 /**
- * @fileoverview Fires `onVisible`/`onHidden` on document visibilitychange —
- * a thin, device-agnostic wrapper. Whether a given visibility transition
- * should be treated as the app being "opened" or "closed" is a per-feature
- * decision (e.g. desktop tab-switching vs. mobile backgrounding), so that
- * logic belongs in the caller, not here.
+ * @fileoverview Fires `onVisible`/`onHidden` on document visibilitychange.
  */
 
 import { useRef } from 'react'
@@ -14,6 +10,13 @@ interface UseAppVisibilityOptions {
   onHidden?: () => void
 }
 
+/**
+ * Calls `onVisible` or `onHidden` as the document's visibility changes.
+ *
+ * A thin, device-agnostic wrapper: whether a change means the app was opened
+ * or closed (a desktop tab switch, say, against a phone backgrounding it) is
+ * the caller's to decide.
+ */
 export const useAppVisibility = ({
   onVisible,
   onHidden,

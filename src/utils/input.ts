@@ -101,6 +101,9 @@ export const blurFocusedTextInput = (): boolean => {
 /**
  * Whether `event` belongs to an IME composition, such as the Enter that
  * commits a candidate -- a key the field should leave to the IME.
+ *
+ * Catches Safari's committing keydown too, which `event.isComposing` alone
+ * reports as not composing.
  */
 export const isComposing = (event: KeyboardEvent) =>
   // Safari can report the committing keydown as not composing, but always
