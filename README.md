@@ -64,6 +64,7 @@ The scrolling hooks jump by default; pass `scrollBehavior: 'smooth'` to animate,
 | `useTouchKeepsFocus` | Keeps focus in a text field while a menu or popover opened by touch is used, so the on-screen keyboard stays up. Fits Radix's `onOpenAutoFocus`. |
 | `useFocusVisibleOpen` | Open state for something keyboard focus opens, like a tooltip, waiting until the scroll that focus brings has finished. |
 | `useTooltipFocusOpen` | `useFocusVisibleOpen` fitted to a Radix tooltip, replacing Radix's own focus open, which a scrolled-to trigger loses. Takes the tooltip's other open state, like `usePressToggle`'s. |
+| `useTreeNavigation` / `useTreeItem` | Makes a tree of rows one tab stop, moved through with the arrow keys as the WAI-ARIA tree view pattern describes, moving focus to the top row when the focused one goes. Pass only the rows shown, in order. |
 | `blurFocusedTextInput` | Blurs the focused text field, closing the on-screen keyboard. |
 
 ### Press and Toggle
