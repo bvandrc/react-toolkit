@@ -58,11 +58,11 @@ The scrolling hooks jump by default; pass `scrollBehavior: 'smooth'` to animate,
 | Export | What it does |
 | --- | --- |
 | `useFocusHandoff` | Hands focus to a target when the focused element inside a container unmounts, so it doesn't fall to `<body>`. |
-| `useFocusReturn` | Returns focus to what had it when a dialog opened. Fits a Radix dialog's `onCloseAutoFocus`. |
+| `useFocusReturn` | Returns focus to what had it when a dialog opened, including one that only mounts once open. Fits a Radix dialog's `onCloseAutoFocus`. |
 | `useTouchKeepsFocus` | Keeps focus in a text field while a menu or popover opened by touch is used, so the on-screen keyboard stays up. Fits Radix's `onOpenAutoFocus`. |
 | `useFocusVisibleOpen` | Open state for something keyboard focus opens, like a tooltip, waiting until the scroll that focus brings has finished. |
 | `useTooltipFocusOpen` | `useFocusVisibleOpen` fitted to a Radix tooltip, replacing Radix's own focus open, which a scrolled-to trigger loses. Takes the tooltip's other open state, like `usePressToggle`'s. |
-| `blurFocusedTextInput` | Blurs the focused text field, closing the on-screen keyboard. |
+| `blurFocusedTextInput` | Blurs the focused text field, closing the on-screen keyboard. Takes an element to move focus to, so it doesn't fall to `<body>`. |
 
 ### Press and Toggle
 

@@ -84,15 +84,20 @@ export const isTextEntry = (element: Element | null): element is HTMLElement =>
  * Blurs the focused text input, textarea, or contenteditable element, if any.
  *
  * Returns whether it blurred one, so a caller can let that be all a key does.
+ * A bare blur leaves focus on `<body>`, so pass `focusTo` to land it there
+ * instead -- the dialog the field sits in, say, so focus doesn't leave it.
  */
-export const blurFocusedTextInput = (): boolean => {
+export const blurFocusedTextInput = (focusTo?: HTMLElement | null): boolean => {
   const active = document.activeElement
   if (
     active instanceof HTMLInputElement ||
     active instanceof HTMLTextAreaElement ||
     (active instanceof HTMLElement && active.isContentEditable)
   ) {
+    // Blurred before `focusTo` is focused, rather than left to that focus to
+    // move: one that can't take focus would leave the field focused.
     active.blur()
+    focusTo?.focus()
     return true
   }
   return false
