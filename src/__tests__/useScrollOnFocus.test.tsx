@@ -95,6 +95,22 @@ describe('useScrollOnFocus', () => {
     expect(scrollParent.scrollTop).toBe(30)
   })
 
+  it('scrolls the field clear of the keyboard where the container keeps its height', () => {
+    mockTouchDevice(true)
+    const viewport = mockVisualViewport({ height: 800 })
+    // A `fixed` sheet, say: the keyboard covers its bottom rather than
+    // shrinking it, and only the visual viewport says so.
+    const { field, scrollParent } = renderFieldInScrollParent({
+      top: 50,
+      height: 100,
+    })
+
+    fireEvent.focus(field)
+    viewport.change({ height: 120 }, 'resize')
+
+    expect(scrollParent.scrollTop).toBe(30)
+  })
+
   it('stops following resizes once blurred', () => {
     mockTouchDevice(false)
     const reportResize = mockResizeObserver()

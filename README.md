@@ -44,11 +44,11 @@ Requires React 18 or 19. ESM only, with types included. Each export's JSDoc, shi
 | Export | What it does |
 | --- | --- |
 | `useScrollIntoView` | `scrollIntoView` within an element's own scroll container: cancelable, held against scroll anchoring, and clear of its scroll padding. |
-| `useScrollOnFocus` | Scrolls a focused element into view and keeps it there as it resizes. On touch, restores the scroll the on-screen keyboard leaves behind. |
+| `useScrollOnFocus` | Scrolls a focused element into view, clear of the on-screen keyboard, and keeps it there as it or the keyboard resizes. On touch, restores the scroll the on-screen keyboard leaves behind. |
 | `useMakeRoomForPopover` | When a popover mounts too tall to fit above or below its trigger, scrolls the trigger's scroll area so it does. |
 | `getTargetScrollTop` | The `scrollTop` that brings an element into view within its scroll container. |
 | `findScrollableAncestor` | The nearest ancestor that scrolls, or the document's scrolling element. |
-| `getVisibleBounds` | The visible top and bottom of a scroll container, in viewport coordinates, minus its scroll padding. |
+| `getVisibleBounds` | The visible top and bottom of a scroll container, in viewport coordinates, minus its scroll padding and what the on-screen keyboard covers. |
 | `onFocusScrollEnd` | Calls back once the scroll that focusing an element brings has finished. Works outside React. |
 
 The scrolling hooks jump by default; pass `scrollBehavior: 'smooth'` to animate, except for users who prefer reduced motion.
